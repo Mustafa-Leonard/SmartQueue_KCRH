@@ -1,0 +1,50 @@
+{
+  "env": {
+    "node": true,
+    "es2022": true,
+    "browser": false
+  },
+  "extends": ["eslint:recommended"],
+  "parserOptions": {
+    "ecmaVersion": 2022,
+    "sourceType": "module"
+  },
+  "rules": {
+    "no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+    "no-console": ["warn", { "allow": ["warn", "error", "info"] }],
+    "prefer-const": "error",
+    "no-var": "error",
+    "eqeqeq": ["error", "always"],
+    "curly": ["error", "all"],
+    "no-return-await": "error",
+    "require-await": "error"
+  },
+  "overrides": [
+    {
+      "files": ["frontend/src/**/*.{js,jsx}"],
+      "env": {
+        "browser": true,
+        "node": false
+      },
+      "extends": ["eslint:recommended", "plugin:react/recommended", "plugin:react-hooks/recommended"],
+      "plugins": ["react", "react-hooks"],
+      "parserOptions": {
+        "ecmaVersion": 2022,
+        "sourceType": "module",
+        "ecmaFeatures": {
+          "jsx": true
+        }
+      },
+      "settings": {
+        "react": {
+          "version": "detect"
+        }
+      },
+      "rules": {
+        "react/prop-types": "off",
+        "react/react-in-jsx-scope": "off",
+        "react/display-name": "off"
+      }
+    }
+  ]
+}
