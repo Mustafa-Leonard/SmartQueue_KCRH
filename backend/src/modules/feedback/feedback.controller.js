@@ -4,9 +4,9 @@ import asyncHandler from '../../utils/asyncHandler.js';
 import { z } from 'zod';
 
 export const createFeedbackSchema = z.object({
-  rating: z.number().int().min(1).max(5),
+  rating: z.number().int().min(1).max(5).optional(),
   comment: z.string().optional(),
-  category: z.enum(['GENERAL', 'SERVICE', 'WAIT_TIME', 'STAFF', 'FACILITY']).optional(),
+  category: z.enum(['GENERAL', 'SERVICE', 'WAIT_TIME', 'STAFF', 'FACILITY', 'COMMUNICATION', 'ACCESSIBILITY', 'COMPLAINT', 'SUGGESTION']).optional(),
   ticketId: z.string().cuid().optional()
 });
 
