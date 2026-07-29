@@ -89,7 +89,8 @@ export default function BranchesPage() {
     setValue('description', branch.description);
     setValue('phone', branch.phone || '');
     setValue('email', branch.email || '');
-    setValue('openingHours', branch.openingHours || '');
+    setValue('openingTime', branch.openingTime || '');
+    setValue('closingTime', branch.closingTime || '');
     setIsEditModalOpen(true);
   };
 
@@ -295,7 +296,8 @@ export default function BranchesPage() {
           <Input label="Location / Building" type="text" placeholder="e.g. Block B, Ground Floor" error={errors.location} {...register('location', { required: 'Location is required' })} />
           <Input label="Phone Number" type="text" placeholder="e.g. +254700000000" {...register('phone')} />
           <Input label="Email Address" type="email" placeholder="e.g. opd@kcrh.go.ke" {...register('email')} />
-          <Input label="Opening Hours" type="text" placeholder="e.g. Mon-Fri 8:00 AM - 5:00 PM" {...register('openingHours')} />
+          <Input label="Opening Time" type="text" placeholder="e.g. 08:00" {...register('openingTime')} />
+          <Input label="Closing Time" type="text" placeholder="e.g. 17:00" {...register('closingTime')} />
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
             <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-secondary)' }}>Description</label>
             <textarea {...register('description')} placeholder="Details about services provided here..." style={{ ...selectStyle, minHeight: '80px', resize: 'vertical' }} />
@@ -316,7 +318,8 @@ export default function BranchesPage() {
           <Input label="Location / Building" type="text" error={errors.location} {...register('location', { required: 'Location is required' })} />
           <Input label="Phone Number" type="text" {...register('phone')} />
           <Input label="Email Address" type="email" {...register('email')} />
-          <Input label="Opening Hours" type="text" {...register('openingHours')} />
+          <Input label="Opening Time" type="text" placeholder="e.g. 08:00" {...register('openingTime')} />
+          <Input label="Closing Time" type="text" placeholder="e.g. 17:00" {...register('closingTime')} />
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
             <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-secondary)' }}>Description</label>
             <textarea {...register('description')} style={{ ...selectStyle, minHeight: '80px', resize: 'vertical' }} />

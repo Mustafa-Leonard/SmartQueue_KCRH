@@ -37,6 +37,13 @@ export default function CustomerProfilePage() {
       emergencyName: parsedEmergency.name || '',
       emergencyPhone: parsedEmergency.phone || '',
       emergencyRelation: parsedEmergency.relation || '',
+      // Medical fields
+      weight: user?.weight || '',
+      bloodType: user?.bloodType || '',
+      height: user?.height || '',
+      diseases: user?.diseases || '',
+      allergies: user?.allergies || '',
+      gender: user?.gender || '',
     }
   });
 
@@ -63,6 +70,15 @@ export default function CustomerProfilePage() {
           phone: data.emergencyPhone,
           relation: data.emergencyRelation
         }),
+        // Medical fields
+        weight: data.weight,
+        bloodType: data.bloodType,
+        height: data.height,
+        diseases: data.diseases,
+        allergies: data.allergies,
+        gender: data.gender,
+        address: data.address,
+        dateOfBirth: data.dateOfBirth,
       };
 
       // Include profile image if changed
@@ -211,6 +227,47 @@ export default function CustomerProfilePage() {
                 <Input label="Date of Birth" type="date" {...profileRegister('dateOfBirth')} />
               </div>
               <Input label="Home Address" type="text" {...profileRegister('address')} placeholder="e.g. 123 Hospital Road" />
+              
+              {/* Medical Information */}
+              <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '1.25rem' }}>
+                <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  🏥 Medical Information
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+                  <Input label="Weight (kg)" type="text" {...profileRegister('weight')} placeholder="e.g. 70" />
+                  <Input label="Height (cm)" type="text" {...profileRegister('height')} placeholder="e.g. 170" />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-secondary)' }}>Blood Type</label>
+                    <select {...profileRegister('bloodType')} style={selectStyle}>
+                      <option value="">— Select —</option>
+                      <option value="A+">A+</option>
+                      <option value="A-">A-</option>
+                      <option value="B+">B+</option>
+                      <option value="B-">B-</option>
+                      <option value="AB+">AB+</option>
+                      <option value="AB-">AB-</option>
+                      <option value="O+">O+</option>
+                      <option value="O-">O-</option>
+                    </select>
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-secondary)' }}>Gender</label>
+                    <select {...profileRegister('gender')} style={selectStyle}>
+                      <option value="">— Select —</option>
+                      <option value="MALE">Male</option>
+                      <option value="FEMALE">Female</option>
+                      <option value="OTHER">Other</option>
+                    </select>
+                  </div>
+                  <Input label="Last Visit Date" type="date" {...profileRegister('lastVisit')} />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
+                  <Input label="Known Diseases / Conditions" type="text" {...profileRegister('diseases')} placeholder="e.g. Hypertension, Diabetes" />
+                  <Input label="Known Allergies" type="text" {...profileRegister('allergies')} placeholder="e.g. Penicillin, Peanuts" />
+                </div>
+              </div>
               
               <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '1.25rem' }}>
                 <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

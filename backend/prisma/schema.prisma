@@ -7,48 +7,51 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ───────────────────────────────────────────────────────────────
-// AUTH / USER CORE
-// ───────────────────────────────────────────────────────────────
-
 model User {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  phone     String   @unique
-  password  String
-  role      String   @default("CUSTOMER")
-  isActive  Boolean  @default(true)
-  isLocked  Boolean  @default(false)
-  lockedUntil DateTime?
-  failedLoginAttempts Int @default(0)
-  twoFactorEnabled Boolean @default(false)
-  twoFactorSecret  String?
-  lastLogin DateTime?
-  lastLoginIp String?
-  profileImageUrl String?
-  notificationPrefs String? // JSON: { sms: true, email: false, whatsapp: false, inApp: true }
-  emergencyContact   String?
+  id                   String               @id @default(cuid())
+  name                 String
+  email                String               @unique
+  phone                String               @unique
+  password             String
+  role                 String               @default("CUSTOMER")
+  isActive             Boolean              @default(true)
+  isLocked             Boolean              @default(false)
+  lockedUntil          DateTime?
+  failedLoginAttempts  Int                  @default(0)
+  twoFactorEnabled     Boolean              @default(false)
+  twoFactorSecret      String?
+  lastLogin            DateTime?
+  lastLoginIp          String?
+  profileImageUrl      String?
+  notificationPrefs    String?
+  emergencyContact     String?
   emergencyContactName String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  deletedAt DateTime?
-
-  // Relations
-  assignedCounter   Counter?
-  tickets           Ticket[]
-  appointments      Appointment[]
-  notifications     Notification[]
-  assignedTasks     Task[]          @relation("TaskAssignee")
-  createdTasks      Task[]          @relation("TaskCreator")
-  feedbacks         Feedback[]
-  sessions          UserSession[]
-  auditLogs         AuditLog[]
-  activityLogs      ActivityLog[]
-  passwordResets    PasswordResetToken[]
-  apiLogs           ApiLog[]
-  sentNotifications Notification[]  @relation("NotificationSender")
-  kioskSessions     KioskSession[]
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  deletedAt            DateTime?
+  address              String?
+  allergies            String?
+  bloodType            String?
+dateOfBirth          String?
+  diseases             String?
+  gender               String?
+  height               String?
+  lastVisit            String?
+  weight               String?
+  activityLogs         ActivityLog[]
+  apiLogs              ApiLog[]
+  appointments         Appointment[]
+  auditLogs            AuditLog[]
+  assignedCounter      Counter?
+  feedbacks            Feedback[]
+  kioskSessions        KioskSession[]
+  sentNotifications    Notification[]       @relation("NotificationSender")
+  notifications        Notification[]
+  passwordResets       PasswordResetToken[]
+  createdTasks         Task[]               @relation("TaskCreator")
+  assignedTasks        Task[]               @relation("TaskAssignee")
+  tickets              Ticket[]
+  sessions             UserSession[]
 
   @@map("users")
 }
@@ -64,8 +67,7 @@ model UserSession {
   lastUsedAt   DateTime @default(now())
   expiresAt    DateTime
   createdAt    DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([refreshToken])
@@ -73,109 +75,96 @@ model UserSession {
 }
 
 model PasswordResetToken {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   userId    String
-  token     String   @unique
+  token     String    @unique
   expiresAt DateTime
   usedAt    DateTime?
-  createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([token])
   @@map("password_reset_tokens")
 }
 
-// ───────────────────────────────────────────────────────────────
-// BRANCH / DEPARTMENT / SERVICE / COUNTER
-// ───────────────────────────────────────────────────────────────
-
 model Branch {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  description String?
-  location    String?
-  phone       String?
-  email       String?
-  openingTime String?  @default("08:00")
-  closingTime String?  @default("17:00")
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  deletedAt   DateTime?
-
-  services  Service[]
-  counters  Counter[]
-  queues    Queue[]
-  tasks     Task[]
-  announcements HospitalAnnouncement[]
+  id              String                 @id @default(cuid())
+  name            String                 @unique
+  description     String?
+  location        String?
+  isActive        Boolean                @default(true)
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+  closingTime     String?                @default("17:00")
+  deletedAt       DateTime?
+  email           String?
+  openingTime     String?                @default("08:00")
+  phone           String?
+  counters        Counter[]
   healthBulletins HealthBulletin[]
+  announcements   HospitalAnnouncement[]
+  queues          Queue[]
+  services        Service[]
+  tasks           Task[]
 
   @@map("branches")
 }
 
 model Service {
-  id            String   @id @default(cuid())
+  id            String        @id @default(cuid())
   name          String
   description   String?
-  estimatedTime Int      @default(10)
-  category      String?  // e.g. "OUTPATIENT", "INPATIENT", "LAB", "PHARMACY"
-  color         String?  // hex color for UI
-  icon          String?  // icon name for UI
-  isActive      Boolean  @default(true)
+  estimatedTime Int           @default(10)
+  isActive      Boolean       @default(true)
   branchId      String
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  category      String?
+  color         String?
   deletedAt     DateTime?
-
-  branch       Branch        @relation(fields: [branchId], references: [id], onDelete: Cascade)
-  tickets      Ticket[]
-  appointments Appointment[]
-  counters     Counter[]
+  icon          String?
+  appointments  Appointment[]
+  branch        Branch        @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  tickets       Ticket[]
+  counters      Counter[]     @relation("CounterToService")
 
   @@index([branchId])
   @@map("services")
 }
 
 model Counter {
-  id        String        @id @default(cuid())
-  name      String
-  number    Int
-  status    String        @default("CLOSED") // OPEN, CLOSED, PAUSED, BREAK
-  branchId  String
-  staffId   String?       @unique
-  services  String?       // JSON array of service IDs or comma-separated
-  queueCapacity Int?      @default(50)
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-
-  branch   Branch    @relation(fields: [branchId], references: [id], onDelete: Cascade)
-  staff    User?     @relation(fields: [staffId], references: [id])
-  tickets  Ticket[]
-  serviceRelations Service[] // Many-to-many via ServiceCounter
+  id               String    @id @default(cuid())
+  name             String
+  number           Int
+  status           String    @default("CLOSED")
+  branchId         String
+  staffId          String?   @unique
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  queueCapacity    Int?      @default(50)
+  services         String?
+  staff            User?     @relation(fields: [staffId], references: [id])
+  branch           Branch    @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  tickets          Ticket[]
+  serviceRelations Service[] @relation("CounterToService")
 
   @@index([branchId])
   @@map("counters")
 }
 
-// ───────────────────────────────────────────────────────────────
-// QUEUE & TICKET
-// ───────────────────────────────────────────────────────────────
-
 model Queue {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   date      DateTime
   branchId  String
-  isOpen    Boolean  @default(true)
-  isPaused  Boolean  @default(false)
+  isOpen    Boolean   @default(true)
+  isPaused  Boolean   @default(false)
   pausedAt  DateTime?
   closedAt  DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  branch  Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
-  tickets Ticket[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  branch    Branch    @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  tickets   Ticket[]
 
   @@unique([branchId, date])
   @@index([branchId, date])
@@ -183,15 +172,15 @@ model Queue {
 }
 
 model Ticket {
-  id            String       @id @default(cuid())
-  ticketNumber  String       @unique
-  ticketCode    String       @unique @default(cuid())
-  status        String       @default("WAITING") // WAITING, CALLED, SERVING, COMPLETED, SKIPPED, NO_SHOW, TRANSFERRED
-  type          String       @default("WALK_IN") // WALK_IN, APPOINTMENT, VIP, EMERGENCY, TRANSFERRED
-  priority      Int          @default(0) // Higher = higher priority (emergency=100, VIP=50, normal=0)
+  id            String     @id @default(cuid())
+  ticketNumber  String     @unique
+  ticketCode    String     @unique @default(cuid())
+  status        String     @default("WAITING")
+  type          String     @default("WALK_IN")
+  priority      Int        @default(0)
   position      Int
-  waitingBefore Int          @default(0)
-  qrCodeData    String?      // JSON with ticket info for QR validation
+  waitingBefore Int        @default(0)
+  qrCodeData    String?
   calledAt      DateTime?
   servedAt      DateTime?
   completedAt   DateTime?
@@ -200,14 +189,13 @@ model Ticket {
   serviceId     String
   counterId     String?
   queueId       String
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-
-  customer  User      @relation(fields: [customerId], references: [id])
-  service   Service   @relation(fields: [serviceId], references: [id])
-  counter   Counter?  @relation(fields: [counterId], references: [id])
-  queue     Queue     @relation(fields: [queueId], references: [id])
-  feedbacks Feedback[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  feedbacks     Feedback[]
+  queue         Queue      @relation(fields: [queueId], references: [id])
+  counter       Counter?   @relation(fields: [counterId], references: [id])
+  service       Service    @relation(fields: [serviceId], references: [id])
+  customer      User       @relation(fields: [customerId], references: [id])
 
   @@index([queueId, status])
   @@index([customerId])
@@ -216,42 +204,33 @@ model Ticket {
   @@map("tickets")
 }
 
-// ───────────────────────────────────────────────────────────────
-// APPOINTMENT
-// ───────────────────────────────────────────────────────────────
-
 model Appointment {
-  id         String            @id @default(cuid())
-  date       DateTime
-  timeSlot   String
-  status     String @default("PENDING") // PENDING, CONFIRMED, CANCELLED, COMPLETED, NO_SHOW, RESCHEDULED
-  notes      String?
-  cancelReason String?
+  id                String   @id @default(cuid())
+  date              DateTime
+  timeSlot          String
+  status            String   @default("PENDING")
+  notes             String?
+  customerId        String
+  serviceId         String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  cancelReason      String?
   rescheduledFromId String?
-  customerId String
-  serviceId  String
-  createdAt  DateTime          @default(now())
-  updatedAt  DateTime          @updatedAt
-
-  customer User    @relation(fields: [customerId], references: [id])
-  service  Service @relation(fields: [serviceId], references: [id])
+  service           Service  @relation(fields: [serviceId], references: [id])
+  customer          User     @relation(fields: [customerId], references: [id])
 
   @@index([customerId])
   @@index([serviceId, date])
   @@map("appointments")
 }
 
-// ───────────────────────────────────────────────────────────────
-// TASK
-// ───────────────────────────────────────────────────────────────
-
 model Task {
   id          String    @id @default(cuid())
   title       String
   description String?
-  priority    String    @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
-  status      String    @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED, CANCELLED
-  progress    Int       @default(0) // 0-100
+  priority    String    @default("MEDIUM")
+  status      String    @default("PENDING")
+  progress    Int       @default(0)
   dueDate     DateTime?
   completedAt DateTime?
   branchId    String?
@@ -259,69 +238,58 @@ model Task {
   assignedBy  String
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-
-  assignee User?   @relation("TaskAssignee", fields: [assignedTo], references: [id])
-  creator  User    @relation("TaskCreator", fields: [assignedBy], references: [id])
-  branch   Branch? @relation(fields: [branchId], references: [id])
+  branch      Branch?   @relation(fields: [branchId], references: [id])
+  creator     User      @relation("TaskCreator", fields: [assignedBy], references: [id])
+  assignee    User?     @relation("TaskAssignee", fields: [assignedTo], references: [id])
 
   @@index([assignedTo])
   @@index([status])
   @@map("tasks")
 }
 
-// ───────────────────────────────────────────────────────────────
-// FEEDBACK
-// ───────────────────────────────────────────────────────────────
-
 model Feedback {
-  id          String   @id @default(cuid())
-  rating      Int      @default(0)
-  comment     String?
-  category    String   @default("GENERAL") // GENERAL, SERVICE, WAIT_TIME, STAFF, FACILITY, COMMUNICATION, ACCESSIBILITY, COMPLAINT, SUGGESTION
-  sentiment   String?  // POSITIVE, NEUTRAL, NEGATIVE (auto-computed)
-  ticketId    String?
-  customerId  String
-  isRead      Boolean  @default(false)
-  isResolved  Boolean  @default(false)
+  id            String    @id @default(cuid())
+  rating        Int       @default(0)
+  comment       String?
+  category      String    @default("GENERAL")
+  sentiment     String?
+  ticketId      String?
+  customerId    String
+  isRead        Boolean   @default(false)
+  isResolved    Boolean   @default(false)
   adminResponse String?
-  respondedAt DateTime?
-  respondedBy String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  customer User   @relation(fields: [customerId], references: [id])
-  ticket   Ticket? @relation(fields: [ticketId], references: [id])
+  respondedAt   DateTime?
+  respondedBy   String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  ticket        Ticket?   @relation(fields: [ticketId], references: [id])
+  customer      User      @relation(fields: [customerId], references: [id])
 
   @@index([customerId])
   @@index([category])
   @@map("feedbacks")
 }
 
-// ───────────────────────────────────────────────────────────────
-// NOTIFICATION
-// ───────────────────────────────────────────────────────────────
-
 model Notification {
-  id         String   @id @default(cuid())
-  type       String   // SMS, EMAIL, WHATSAPP, IN_APP, PUSH
-  channel    String   @default("IN_APP") // delivery channel
-  recipient  String
-  subject    String?
-  message    String
-  status     String   @default("PENDING") // PENDING, SENT, DELIVERED, FAILED, READ
-  category   String?  // queue, appointment, announcement, emergency, system
-  priority   String?  // LOW, MEDIUM, HIGH, URGENT
-  sentById   String?
-  userId     String?
-  templateId String?
-  sentAt     DateTime?
-  readAt     DateTime?
+  id           String    @id @default(cuid())
+  type         String
+  channel      String    @default("IN_APP")
+  recipient    String
+  subject      String?
+  message      String
+  status       String    @default("PENDING")
+  category     String?
+  priority     String?
+  sentById     String?
+  userId       String?
+  templateId   String?
+  sentAt       DateTime?
+  readAt       DateTime?
   errorMessage String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  user User?        @relation(fields: [userId], references: [id])
-  sentBy User?      @relation("NotificationSender", fields: [sentById], references: [id])
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  sentBy       User?     @relation("NotificationSender", fields: [sentById], references: [id])
+  user         User?     @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([status])
@@ -334,64 +302,55 @@ model NotificationTemplate {
   name      String   @unique
   subject   String?
   body      String
-  variables String?  // JSON array of variable names
-  channel   String   @default("IN_APP") // SMS, EMAIL, WHATSAPP, IN_APP
+  variables String?
+  channel   String   @default("IN_APP")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("notification_templates")
 }
 
-// ───────────────────────────────────────────────────────────────
-// SETTINGS
-// ───────────────────────────────────────────────────────────────
-
 model SystemSetting {
   id          String   @id @default(cuid())
   key         String   @unique
   value       String
   description String?
-  category    String?  // general, queue, notification, security, branding, integration
   updatedAt   DateTime @updatedAt
+  category    String?
 
   @@map("system_settings")
 }
 
 model QueueRule {
-  id             String   @id @default(cuid())
-  name           String   @unique
-  description    String?
-  maxWaitTime    Int      @default(30) // minutes
-  maxQueueSize   Int      @default(100)
-  emergencyPriority Int   @default(100)
-  vipPriority    Int      @default(50)
-  autoBalance    Boolean  @default(false)
-  allowTransfers Boolean  @default(true)
-  allowRecall    Boolean  @default(true)
-  branchId       String?
-  isActive       Boolean  @default(true)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id                String   @id @default(cuid())
+  name              String   @unique
+  description       String?
+  maxWaitTime       Int      @default(30)
+  maxQueueSize      Int      @default(100)
+  emergencyPriority Int      @default(100)
+  vipPriority       Int      @default(50)
+  autoBalance       Boolean  @default(false)
+  allowTransfers    Boolean  @default(true)
+  allowRecall       Boolean  @default(true)
+  branchId          String?
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   @@map("queue_rules")
 }
 
-// ───────────────────────────────────────────────────────────────
-// AUDIT & ACTIVITY LOGGING
-// ───────────────────────────────────────────────────────────────
-
 model AuditLog {
-  id         String   @id @default(cuid())
-  userId     String?
-  action     String   // CREATE, UPDATE, DELETE, LOGIN, LOGOUT, TRANSFER, etc.
-  entity     String   // User, Ticket, Appointment, Counter, etc.
-  entityId   String?
-  details    String?  // JSON with before/after state
-  ipAddress  String?
-  userAgent  String?
-  createdAt  DateTime @default(now())
-
-  user User? @relation(fields: [userId], references: [id])
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  entity    String
+  entityId  String?
+  details   String?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([action])
@@ -403,13 +362,12 @@ model AuditLog {
 model ActivityLog {
   id        String   @id @default(cuid())
   userId    String?
-  type      String   // LOGIN, LOGOUT, TICKET_CREATED, TICKET_CALLED, TICKET_COMPLETED, etc.
+  type      String
   message   String
-  details   String?  // JSON
+  details   String?
   ipAddress String?
   createdAt DateTime @default(now())
-
-  user User? @relation(fields: [userId], references: [id])
+  user      User?    @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([type])
@@ -417,22 +375,18 @@ model ActivityLog {
   @@map("activity_logs")
 }
 
-// ───────────────────────────────────────────────────────────────
-// HMIS / MAT INTEGRATION
-// ───────────────────────────────────────────────────────────────
-
 model IntegrationLog {
-  id          String   @id @default(cuid())
-  direction   String   // INBOUND, OUTBOUND
-  system      String   // HMIS, MAT, OTHER
-  endpoint    String
-  request     String?  // JSON
-  response    String?  // JSON
-  statusCode  Int?
-  status      String   @default("PENDING") // PENDING, SUCCESS, FAILED
+  id           String   @id @default(cuid())
+  direction    String
+  system       String
+  endpoint     String
+  request      String?
+  response     String?
+  statusCode   Int?
+  status       String   @default("PENDING")
   errorMessage String?
-  duration    Int?     // ms
-  createdAt   DateTime @default(now())
+  duration     Int?
+  createdAt    DateTime @default(now())
 
   @@index([system, status])
   @@index([createdAt])
@@ -440,18 +394,17 @@ model IntegrationLog {
 }
 
 model ApiLog {
-  id        String   @id @default(cuid())
-  userId    String?
-  method    String
-  path      String
-  query     String?
+  id         String   @id @default(cuid())
+  userId     String?
+  method     String
+  path       String
+  query      String?
   statusCode Int
-  duration  Int?     // ms
-  ipAddress String?
-  userAgent String?
-  createdAt DateTime @default(now())
-
-  user User? @relation(fields: [userId], references: [id])
+  duration   Int?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([path])
@@ -459,20 +412,16 @@ model ApiLog {
   @@map("api_logs")
 }
 
-// ───────────────────────────────────────────────────────────────
-// SMS & WHATSAPP LOGS
-// ───────────────────────────────────────────────────────────────
-
 model SmsLog {
-  id         String   @id @default(cuid())
-  to         String
-  message    String
-  status     String   @default("PENDING") // PENDING, SENT, DELIVERED, FAILED
-  provider   String   @default("AFRICASTALKING")
-  messageId  String?
-  cost       Float?
+  id           String   @id @default(cuid())
+  to           String
+  message      String
+  status       String   @default("PENDING")
+  provider     String   @default("AFRICASTALKING")
+  messageId    String?
+  cost         Float?
   errorMessage String?
-  createdAt  DateTime @default(now())
+  createdAt    DateTime @default(now())
 
   @@index([to])
   @@index([status])
@@ -480,40 +429,35 @@ model SmsLog {
 }
 
 model WhatsAppLog {
-  id         String   @id @default(cuid())
-  to         String
-  message    String
+  id           String   @id @default(cuid())
+  to           String
+  message      String
   templateName String?
-  status     String   @default("PENDING")
-  provider   String   @default("TWILIO")
-  messageId  String?
-  cost       Float?
+  status       String   @default("PENDING")
+  provider     String   @default("TWILIO")
+  messageId    String?
+  cost         Float?
   errorMessage String?
-  createdAt  DateTime @default(now())
+  createdAt    DateTime @default(now())
 
   @@index([to])
   @@index([status])
   @@map("whatsapp_logs")
 }
 
-// ───────────────────────────────────────────────────────────────
-// HOSPITAL ANNOUNCEMENTS & BULLETINS
-// ───────────────────────────────────────────────────────────────
-
 model HospitalAnnouncement {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   title     String
   message   String
-  type      String   @default("INFO") // INFO, WARNING, EMERGENCY, EVENT
-  priority  String   @default("NORMAL") // LOW, NORMAL, HIGH, URGENT
-  isActive  Boolean  @default(true)
+  type      String    @default("INFO")
+  priority  String    @default("NORMAL")
+  isActive  Boolean   @default(true)
   expiresAt DateTime?
   branchId  String?
   createdBy String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  branch Branch? @relation(fields: [branchId], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  branch    Branch?   @relation(fields: [branchId], references: [id])
 
   @@index([isActive, expiresAt])
   @@map("hospital_announcements")
@@ -523,70 +467,60 @@ model HealthBulletin {
   id        String   @id @default(cuid())
   title     String
   message   String
-  category  String   @default("GENERAL") // GENERAL, SEASONAL, DISEASE, PREVENTION, NUTRITION
-  language  String   @default("EN") // EN, SW
+  category  String   @default("GENERAL")
+  language  String   @default("EN")
   isActive  Boolean  @default(true)
   branchId  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  branch Branch? @relation(fields: [branchId], references: [id])
+  branch    Branch?  @relation(fields: [branchId], references: [id])
 
   @@index([isActive, category])
   @@map("health_bulletins")
 }
 
-// ───────────────────────────────────────────────────────────────
-// KIOSK / SELF-SERVICE
-// ───────────────────────────────────────────────────────────────
-
 model KioskSession {
-  id          String   @id @default(cuid())
-  patientId   String?
-  action      String   // REGISTRATION, QUEUE_JOIN, TICKET_PRINT, APPOINTMENT
-  metadata    String?  // JSON
-  branchId    String?
-  createdAt   DateTime @default(now())
-
-  user User? @relation(fields: [patientId], references: [id])
+  id        String   @id @default(cuid())
+  patientId String?
+  action    String
+  metadata  String?
+  branchId  String?
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [patientId], references: [id])
 
   @@index([createdAt])
   @@map("kiosk_sessions")
 }
 
-// ───────────────────────────────────────────────────────────────
-// REPORTS
-// ───────────────────────────────────────────────────────────────
-
 model Report {
-  id          String   @id @default(cuid())
-  name        String
-  type        String   // PDF, CSV, EXCEL
-  category    String   // DAILY, WEEKLY, MONTHLY, YEARLY, CUSTOM
-  parameters  String?  // JSON: { dateFrom, dateTo, branchId, etc. }
-  fileUrl     String?
-  generatedBy String?
-  status      String   @default("PENDING") // PENDING, GENERATING, COMPLETED, FAILED
+  id           String    @id @default(cuid())
+  name         String
+  type         String
+  category     String
+  parameters   String?
+  fileUrl      String?
+  generatedBy  String?
+  status       String    @default("PENDING")
   errorMessage String?
-  createdAt   DateTime @default(now())
-  completedAt DateTime?
+  createdAt    DateTime  @default(now())
+  completedAt  DateTime?
 
   @@index([category, status])
   @@map("reports")
 }
 
 model ReportSchedule {
-  id          String   @id @default(cuid())
-  name        String
-  category    String   // DAILY, WEEKLY, MONTHLY
-  parameters  String?  // JSON
-  recipients  String   // JSON array of emails
-  isActive    Boolean  @default(true)
-  lastRunAt   DateTime?
-  nextRunAt   DateTime?
-  createdBy   String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         String    @id @default(cuid())
+  name       String
+  category   String
+  parameters String?
+  recipients String
+  isActive   Boolean   @default(true)
+  lastRunAt  DateTime?
+  nextRunAt  DateTime?
+  createdBy  String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
   @@map("report_schedules")
 }

@@ -3,6 +3,8 @@ import { useAuth } from './hooks/useAuth.js';
 import ProtectedRoute from './components/common/ProtectedRoute.jsx';
 import LoginPage from './pages/auth/LoginPage.jsx';
 import RegisterPage from './pages/auth/RegisterPage.jsx';
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage.jsx';
+import ResetPasswordPage from './pages/auth/ResetPasswordPage.jsx';
 // Admin pages
 import DashboardPage from './pages/admin/DashboardPage.jsx';
 import BranchesPage from './pages/admin/BranchesPage.jsx';
@@ -62,6 +64,8 @@ export default function App() {
       {/* Public auth routes (no layout) */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/track/:ticketCode" element={<TrackTicketPage />} />
       <Route path="/track" element={<TrackTicketPage />} />
       <Route path="/display/:branchId" element={<DisplayBoardPage />} />

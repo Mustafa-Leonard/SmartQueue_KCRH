@@ -89,6 +89,9 @@ const LoginPage = () => {
         <div style={{ marginTop: '2rem', textAlign: 'center', fontSize: '0.875rem', color: 'var(--color-text-secondary)' }}>
           Don't have a patient account? <Link to="/register" style={{ fontWeight: 600, color: 'var(--color-primary)' }}>Register here</Link>
         </div>
+        <div style={{ marginTop: '0.75rem', textAlign: 'center', fontSize: '0.875rem' }}>
+          <Link to="/forgot-password" style={{ fontWeight: 600, color: 'var(--color-primary-light)' }}>Forgot Password?</Link>
+        </div>
       </div>
     </div>
   );

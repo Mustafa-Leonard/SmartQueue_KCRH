@@ -61,7 +61,17 @@ export const updateProfileSchema = z.object({
   notificationPrefs: z.string().optional(),
   emergencyContact: z.string().optional(),
   emergencyContactName: z.string().optional(),
-  profileImageUrl: z.string().optional()
+  profileImageUrl: z.string().optional(),
+  // Patient medical fields
+  weight: z.string().optional(),
+  bloodType: z.string().optional(),
+  height: z.string().optional(),
+  lastVisit: z.string().optional(),
+  diseases: z.string().optional(),
+  allergies: z.string().optional(),
+  gender: z.string().optional(),
+  dateOfBirth: z.string().optional(),
+  address: z.string().optional()
 });
 
 export const updateProfile = asyncHandler(async (req, res) => {

@@ -66,9 +66,13 @@ export default function UsersPage() {
   const onEditSubmit = async (data) => {
     setSubmitting(true);
     try {
-      await userApi.updateUser(selectedUser.id, data);
-      await userApi.changeUserRole(selectedUser.id, data.role);
-      if (data.branchId) await userApi.assignDepartment(selectedUser.id, data.branchId);
+      const updateData = {};
+      if (data.name) updateData.name = data.name;
+      if (data.email) updateData.email = data.email;
+      if (data.phone) updateData.phone = data.phone;
+      if (data.role) updateData.role = data.role;
+      if (data.branchId) updateData.branchId = data.branchId;
+      await userApi.updateUser(selectedUser.id, updateData);
       toast.success('User updated successfully');
       setIsEditModalOpen(false);
       setSelectedUser(null);

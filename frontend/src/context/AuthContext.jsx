@@ -85,6 +85,10 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateUser = (updates) => {
+    setUser(prev => prev ? { ...prev, ...updates } : prev);
+  };
+
   const value = {
     user,
     accessToken,
@@ -93,6 +97,7 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
+    updateUser,
     refreshUser: fetchProfile
   };
 

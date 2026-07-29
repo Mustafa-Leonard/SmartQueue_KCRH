@@ -24,3 +24,13 @@ export const updateProfile = async (data) => {
   const response = await api.patch('/auth/profile', data);
   return response.data;
 };
+
+export const forgotPassword = async (email) => {
+  const response = await api.post('/auth/forgot-password', { email });
+  return response.data;
+};
+
+export const resetPassword = async (email, token, newPassword) => {
+  const response = await api.post('/auth/reset-password', { email, token, newPassword, confirmPassword: newPassword });
+  return response.data;
+};

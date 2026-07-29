@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useLocation } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext.jsx';
-import { ClockIcon, KCRHLogo } from './Icons.jsx';
+import { ClockIcon } from './Icons.jsx';
 
 const Topbar = () => {
   const { user } = useContext(AuthContext);
@@ -45,10 +45,8 @@ const Topbar = () => {
         boxShadow: 'var(--shadow-xs)'
       }}
     >
-      {/* Left: KCRH Logo + Breadcrumb */}
+      {/* Left: Breadcrumb */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
-        <KCRHLogo size={32} />
-        <div style={{ width: '1px', height: '28px', backgroundColor: 'var(--color-border)', opacity: 0.5 }} />
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <div style={{
             width: 7, height: 7, borderRadius: '50%',

@@ -185,6 +185,17 @@ export const loginUser = async ({ email, password, ipAddress }) => {
     notificationPrefs: user.notificationPrefs,
     emergencyContact: user.emergencyContact,
     emergencyContactName: user.emergencyContactName,
+    profileImageUrl: user.profileImageUrl,
+    // Direct database fields (already exist in Prisma schema)
+    weight: user.weight || '',
+    bloodType: user.bloodType || '',
+    height: user.height || '',
+    lastVisit: user.lastVisit || '',
+    diseases: user.diseases || '',
+    allergies: user.allergies || '',
+    gender: user.gender || '',
+    dateOfBirth: user.dateOfBirth || '',
+    address: user.address || ''
   };
 
   return { user: safeUser, ...tokens };
@@ -408,6 +419,16 @@ export const updateUserProfile = async (userId, data) => {
   if (data.emergencyContact) updateData.emergencyContact = data.emergencyContact;
   if (data.emergencyContactName) updateData.emergencyContactName = data.emergencyContactName;
   if (data.profileImageUrl) updateData.profileImageUrl = data.profileImageUrl;
+  // Patient medical fields (direct Prisma fields — already exist in schema)
+  if (data.weight !== undefined) updateData.weight = data.weight;
+  if (data.bloodType !== undefined) updateData.bloodType = data.bloodType;
+  if (data.height !== undefined) updateData.height = data.height;
+  if (data.lastVisit !== undefined) updateData.lastVisit = data.lastVisit;
+  if (data.diseases !== undefined) updateData.diseases = data.diseases;
+  if (data.allergies !== undefined) updateData.allergies = data.allergies;
+  if (data.gender !== undefined) updateData.gender = data.gender;
+  if (data.dateOfBirth !== undefined) updateData.dateOfBirth = data.dateOfBirth;
+  if (data.address !== undefined) updateData.address = data.address;
 
   if (Object.keys(updateData).length === 0) {
     throw new Error('No fields to update');
@@ -458,6 +479,16 @@ export const getUserProfile = async (userId) => {
       notificationPrefs: true,
       emergencyContact: true,
       emergencyContactName: true,
+      profileImageUrl: true,
+      weight: true,
+      bloodType: true,
+      height: true,
+      lastVisit: true,
+      diseases: true,
+      allergies: true,
+      gender: true,
+      dateOfBirth: true,
+      address: true,
       createdAt: true
     }
   });
