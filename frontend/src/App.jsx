@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth.js';
 import ProtectedRoute from './components/common/ProtectedRoute.jsx';
+import LandingPage from './pages/landing/LandingPage.jsx';
 import LoginPage from './pages/auth/LoginPage.jsx';
 import RegisterPage from './pages/auth/RegisterPage.jsx';
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage.jsx';
@@ -51,11 +52,15 @@ function RoleRedirect() {
     );
   }
 
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  // If authenticated, redirect to role-based dashboard
+  if (isAuthenticated) {
+    if (user?.role === 'ADMIN') return <Navigate to="/admin/dashboard" replace />;
+    if (user?.role === 'STAFF') return <Navigate to="/staff" replace />;
+    return <Navigate to="/customer/dashboard" replace />;
+  }
 
-  if (user?.role === 'ADMIN') return <Navigate to="/admin/dashboard" replace />;
-  if (user?.role === 'STAFF') return <Navigate to="/staff" replace />;
-  return <Navigate to="/customer/dashboard" replace />;
+  // Not authenticated — show landing page
+  return <LandingPage />;
 }
 
 export default function App() {
