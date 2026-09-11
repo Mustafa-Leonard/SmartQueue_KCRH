@@ -9,7 +9,6 @@ import * as queueApi from '../../api/queueApi.js';
 import * as counterApi from '../../api/counterApi.js';
 import { extractData, extractArray } from '../../utils/apiUtils.js';
 import { 
-  KCRHLogo,
   ClockIcon, 
   MegaphoneIcon, 
   CounterIcon 
@@ -537,15 +536,26 @@ export default function DisplayBoardPage() {
         marginBottom: '1.5rem',
         flexShrink: 0
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <KCRHLogo size={44} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          {/* Hospital icon */}
+          <div style={{
+            width: 48, height: 48, borderRadius: '12px',
+            background: 'linear-gradient(135deg, hsl(226,68%,38%) 0%, hsl(172,66%,36%) 100%)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0, boxShadow: '0 4px 16px hsla(226,68%,38%,0.4)',
+          }}>
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 6v12M6 12h12" />
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+            </svg>
+          </div>
           <div>
-            <h1 style={{ fontSize: '1.5rem', fontWeight: 800, letterSpacing: '-0.5px', color: '#fff' }}>
-              Kilifi County Referral Hospital
+            <h1 style={{ fontSize: '1.3rem', fontWeight: 800, letterSpacing: '-0.3px', color: '#fff', lineHeight: 1.1 }}>
+              Hospital Queue Management System
             </h1>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <span style={{ fontSize: '0.8rem', color: 'hsl(185, 40%, 70%)', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                Digital Queue Board System
+              <span style={{ fontSize: '0.75rem', color: 'hsl(185, 40%, 70%)', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                Live Queue Display Board
               </span>
               {voiceEnabled && (
                 <span className="voice-badge" style={{ fontSize: '0.65rem' }}>

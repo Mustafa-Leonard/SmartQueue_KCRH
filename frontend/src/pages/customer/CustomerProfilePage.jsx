@@ -86,9 +86,11 @@ export default function CustomerProfilePage() {
         updateData.profileImageUrl = profilePic;
       }
 
-      await authApi.updateProfile(updateData);
+      const res = await authApi.updateProfile(updateData);
       toast.success('Profile updated successfully.');
-      if (updateUser) updateUser(updateData);
+      if (updateUser) {
+        updateUser(res.data?.data || res.data || updateData);
+      }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to save changes');
     } finally {

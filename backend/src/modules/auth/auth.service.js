@@ -448,6 +448,16 @@ export const updateUserProfile = async (userId, data) => {
       notificationPrefs: true,
       emergencyContact: true,
       emergencyContactName: true,
+      profileImageUrl: true,
+      weight: true,
+      bloodType: true,
+      height: true,
+      lastVisit: true,
+      diseases: true,
+      allergies: true,
+      gender: true,
+      dateOfBirth: true,
+      address: true,
       createdAt: true
     }
   });

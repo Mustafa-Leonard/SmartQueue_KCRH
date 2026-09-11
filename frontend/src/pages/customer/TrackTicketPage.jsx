@@ -14,8 +14,7 @@ import {
   ClockIcon, 
   MegaphoneIcon, 
   CheckCircleIcon, 
-  TicketIcon, 
-  KCRHLogo 
+  TicketIcon 
 } from '../../components/common/Icons.jsx';
 import { extractData } from '../../utils/apiUtils.js';
 
@@ -347,13 +346,22 @@ export default function TrackTicketPage() {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-bg)', padding: '2rem 1rem', fontFamily: 'Inter, sans-serif' }}>
       <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-          <KCRHLogo size={36} />
+        <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}>
+          <div style={{
+            width: 38, height: 38, borderRadius: '9px',
+            background: 'linear-gradient(135deg, hsl(226,68%,38%) 0%, hsl(172,66%,36%) 100%)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 6v12M6 12h12" />
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+            </svg>
+          </div>
+          <span style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--color-primary)' }}>
+            Hospital Queue Management System
+          </span>
         </div>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--color-primary)', marginTop: '0.75rem' }}>
-          KCRH SmartQueue
-        </h1>
-        <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>Kilifi County Referral Hospital — Live Tracker</p>
+        <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', marginTop: '0.5rem' }}>Live Patient Ticket Tracker</p>
       </div>
       {content}
     </div>

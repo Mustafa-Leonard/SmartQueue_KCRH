@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth.js';
-import { KCRHLogo, ArrowRightIcon, BellIcon, ClockIcon, CalendarIcon, CheckCircleIcon, MapPinIcon, PhoneIcon, MailIcon, ActivityIcon, UsersIcon, TicketIcon, QrCodeIcon, FileTextIcon, LightbulbIcon, SendIcon } from '../../components/common/Icons.jsx';
+import { ArrowRightIcon, BellIcon, ClockIcon, CalendarIcon, CheckCircleIcon, MapPinIcon, PhoneIcon, MailIcon, ActivityIcon, UsersIcon, TicketIcon, QrCodeIcon, FileTextIcon, LightbulbIcon, SendIcon } from '../../components/common/Icons.jsx';
 import './LandingStyles.css';
 
 const stats = [
@@ -103,9 +103,19 @@ export default function LandingPage() {
       <nav className={`landing-nav ${scrolled ? 'landing-nav--scrolled' : ''}`}>
         <div className="landing-nav-inner">
           <Link to="/" className="landing-logo">
-            <KCRHLogo size={36} />
+            <div style={{
+              width: 34, height: 34, borderRadius: '8px',
+              background: 'linear-gradient(135deg, hsl(226,68%,38%) 0%, hsl(172,66%,36%) 100%)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0, boxShadow: '0 2px 8px hsla(226,68%,38%,0.35)',
+            }}>
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 6v12M6 12h12" />
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+              </svg>
+            </div>
             <span className="landing-logo-text">
-              <strong>KCRH</strong> SmartQueue
+              Hospital Queue Management System
             </span>
           </Link>
           <div className="landing-nav-links">
@@ -170,7 +180,7 @@ export default function LandingPage() {
       <section id="features" className="landing-section landing-features">
         <div className="landing-section-header">
           <span className="landing-section-tag">Features</span>
-          <h2 className="landing-section-title">Why KCRH SmartQueue?</h2>
+          <h2 className="landing-section-title">Why Choose Our System?</h2>
           <p className="landing-section-desc">
             A modern, patient-centric approach to hospital queue management that enhances 
             the healthcare experience for everyone.
@@ -262,8 +272,18 @@ export default function LandingPage() {
             {/* Brand */}
             <div className="landing-footer-brand">
               <div className="landing-footer-logo">
-                <KCRHLogo size={32} />
-                <span><strong>KCRH</strong> SmartQueue</span>
+                <div style={{
+                  width: 28, height: 28, borderRadius: '7px',
+                  background: 'linear-gradient(135deg, hsl(226,68%,38%) 0%, hsl(172,66%,36%) 100%)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0,
+                }}>
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 6v12M6 12h12" />
+                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                  </svg>
+                </div>
+                <span>Hospital Queue Management System</span>
               </div>
               <p className="landing-footer-desc">
                 Kilifi County Referral Hospital's digital queue management system. 

@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import Input from '../../components/common/Input.jsx';
 import Button from '../../components/common/Button.jsx';
-import { KCRHLogo, CheckCircleIcon } from '../../components/common/Icons.jsx';
+import { CheckCircleIcon } from '../../components/common/Icons.jsx';
 import * as authApi from '../../api/authApi.js';
 
 const ForgotPasswordPage = () => {
@@ -30,10 +30,13 @@ const ForgotPasswordPage = () => {
     <div className="auth-page">
       <div className="auth-sidebar">
         <div className="auth-logo-large">
-          <KCRHLogo size={56} />
+          <svg viewBox="0 0 24 24" width="52" height="52" fill="none" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            <path d="M12 8v8M8 12h8" strokeWidth="2" />
+          </svg>
         </div>
-        <h1>Reset Your Password</h1>
-        <p>Kilifi County Referral Hospital Digital Patient Queue System. Enter your registered email to receive a password reset link.</p>
+        <h1>Hospital Queue Management System</h1>
+        <p>Enter your registered email address to receive a secure password reset link and regain access to your account.</p>
       </div>
 
       <div className="auth-form-container">

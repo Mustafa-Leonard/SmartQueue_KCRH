@@ -5,7 +5,6 @@ import toast from 'react-hot-toast';
 import { AuthContext } from '../../context/AuthContext.jsx';
 import Input from '../../components/common/Input.jsx';
 import Button from '../../components/common/Button.jsx';
-import { KCRHLogo } from '../../components/common/Icons.jsx';
 
 const LoginPage = () => {
   const { login } = useContext(AuthContext);
@@ -35,13 +34,16 @@ const LoginPage = () => {
 
   return (
     <div className="auth-page">
-      {/* Visual Left Sidebar — KCRH Branding */}
+      {/* Visual Left Sidebar — Text Branding */}
       <div className="auth-sidebar">
         <div className="auth-logo-large">
-          <KCRHLogo size={56} />
+          <svg viewBox="0 0 24 24" width="52" height="52" fill="none" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            <path d="M12 8v8M8 12h8" strokeWidth="2" />
+          </svg>
         </div>
-        <h1>KCRH SmartQueue</h1>
-        <p>Kilifi County Referral Hospital Digital Patient Queue System. Avoid physical waiting lines, get instant SMS alerts, and track your turn live.</p>
+        <h1>Hospital Queue Management System</h1>
+        <p>Digital patient queue management for modern healthcare. Avoid physical waiting lines, get instant SMS alerts, and track your turn live.</p>
       </div>
 
       {/* Right side form */}

@@ -1,6 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.js';
-import { KCRHLogo } from '../components/common/Icons.jsx';
 
 export default function NotFoundPage() {
   const navigate = useNavigate();
@@ -24,9 +23,21 @@ export default function NotFoundPage() {
       padding: '2rem',
       fontFamily: 'Inter, sans-serif',
     }}>
-      {/* KCRH Official Logo */}
-      <div style={{ marginBottom: '2rem', opacity: 0.7 }}>
-        <KCRHLogo size={48} showText />
+      {/* Official Branding */}
+      <div style={{ marginBottom: '2rem', opacity: 0.9, display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div style={{
+          width: 40, height: 40, borderRadius: '10px',
+          background: 'linear-gradient(135deg, hsl(226,68%,38%) 0%, hsl(172,66%,36%) 100%)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 6v12M6 12h12" />
+            <rect x="3" y="3" width="18" height="18" rx="2" />
+          </svg>
+        </div>
+        <span style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--color-text)' }}>
+          Hospital Queue Management System
+        </span>
       </div>
 
       {/* 404 illustration */}

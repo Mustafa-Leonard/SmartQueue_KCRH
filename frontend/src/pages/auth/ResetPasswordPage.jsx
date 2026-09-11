@@ -4,7 +4,7 @@ import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import Input from '../../components/common/Input.jsx';
 import Button from '../../components/common/Button.jsx';
-import { KCRHLogo, CheckCircleIcon } from '../../components/common/Icons.jsx';
+import { CheckCircleIcon } from '../../components/common/Icons.jsx';
 import * as authApi from '../../api/authApi.js';
 
 const ResetPasswordPage = () => {
@@ -44,8 +44,13 @@ const ResetPasswordPage = () => {
     return (
       <div className="auth-page">
         <div className="auth-sidebar">
-          <div className="auth-logo-large"><KCRHLogo size={56} /></div>
-          <h1>Invalid Reset Link</h1>
+          <div className="auth-logo-large">
+            <svg viewBox="0 0 24 24" width="52" height="52" fill="none" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              <path d="M12 8v8M8 12h8" strokeWidth="2" />
+            </svg>
+          </div>
+          <h1>Hospital Queue Management System</h1>
           <p>This password reset link is invalid or missing required parameters.</p>
         </div>
         <div className="auth-form-container" style={{ justifyContent: 'center', textAlign: 'center' }}>
@@ -64,9 +69,14 @@ const ResetPasswordPage = () => {
   return (
     <div className="auth-page">
       <div className="auth-sidebar">
-        <div className="auth-logo-large"><KCRHLogo size={56} /></div>
-        <h1>Reset Your Password</h1>
-        <p>Create a new strong password for your KCRH SmartQueue account. Use at least 8 characters with a mix of letters, numbers, and symbols.</p>
+        <div className="auth-logo-large">
+          <svg viewBox="0 0 24 24" width="52" height="52" fill="none" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            <path d="M12 8v8M8 12h8" strokeWidth="2" />
+          </svg>
+        </div>
+        <h1>Hospital Queue Management System</h1>
+        <p>Create a strong new password for your account. Use at least 8 characters with a mix of letters, numbers, and symbols.</p>
       </div>
 
       <div className="auth-form-container">

@@ -3,6 +3,7 @@ import { useAuth } from './hooks/useAuth.js';
 import ProtectedRoute from './components/common/ProtectedRoute.jsx';
 import LandingPage from './pages/landing/LandingPage.jsx';
 import LoginPage from './pages/auth/LoginPage.jsx';
+import AdminLoginPage from './pages/auth/AdminLoginPage.jsx';
 import RegisterPage from './pages/auth/RegisterPage.jsx';
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage.jsx';
 import ResetPasswordPage from './pages/auth/ResetPasswordPage.jsx';
@@ -68,6 +69,9 @@ export default function App() {
     <Routes>
       {/* Public auth routes (no layout) */}
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/login/" element={<LoginPage />} />
+      <Route path="/admin/login" element={<AdminLoginPage />} />
+      <Route path="/admin/login/" element={<AdminLoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />

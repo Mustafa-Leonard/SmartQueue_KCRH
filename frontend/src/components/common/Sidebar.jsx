@@ -18,8 +18,7 @@ import {
   SettingsIcon,
   MessageIcon,
   HistoryIcon,
-  ActivityIcon,
-  KCRHLogo
+  ActivityIcon
 } from './Icons.jsx';
 
 const Sidebar = () => {
@@ -72,7 +71,8 @@ const Sidebar = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    // Redirect admin to admin login, others to standard login
+    navigate(user?.role === 'ADMIN' ? '/admin/login' : '/login');
   };
 
   const roleBadgeVariant =
@@ -95,17 +95,43 @@ const Sidebar = () => {
         borderRight: '1px solid rgba(255,255,255,0.03)',
       }}
     >
-      {/* Brand Header — KCRH Official Shield Logo */}
+      {/* Brand Header — Text Branding */}
       <div
         style={{
-          padding: 'var(--space-6) var(--space-5)',
+          padding: 'var(--space-5) var(--space-5)',
           background: 'var(--sidebar-bg)',
           borderBottom: '1px solid rgba(255,255,255,0.06)',
           flexShrink: 0,
           position: 'relative',
         }}
       >
-        <KCRHLogo size={38} showText />
+        {/* Top accent line */}
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, height: '2px',
+          background: 'linear-gradient(90deg, hsl(226,68%,38%), hsl(172,66%,36%))',
+        }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+          {/* Small icon square */}
+          <div style={{
+            width: 32, height: 32, borderRadius: '8px',
+            background: 'linear-gradient(135deg, hsl(226,68%,38%) 0%, hsl(172,66%,36%) 100%)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0, boxShadow: '0 2px 8px hsla(226,68%,38%,0.4)',
+          }}>
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              <path d="M12 6v12M6 12h12" stroke="#fff" strokeWidth="1.5" />
+            </svg>
+          </div>
+          <div style={{ lineHeight: 1.2 }}>
+            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Hospital
+            </div>
+            <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#fff', letterSpacing: '-0.2px' }}>
+              Queue Management
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Nav Links */}
