@@ -16,11 +16,14 @@ const LoginPage = () => {
     setSubmitting(true);
     try {
       const response = await login(data);
+      if (response.user.role === 'ADMIN') {
+        toast.error('Admins must log in via the dedicated Admin Portal (/admin/login).');
+        return;
+      }
       toast.success(`Welcome back, ${response.user.name}`);
       
-      // Route based on role
+      // Route based on role (Staff or Patient)
       const redirectMap = {
-        ADMIN: '/admin/dashboard',
         STAFF: '/staff',
         CUSTOMER: '/join'
       };
