@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.js';
+import { ArrowRightIcon, BranchIcon, DashboardIcon } from '../components/common/Icons.jsx';
 
 export default function NotFoundPage() {
   const navigate = useNavigate();
@@ -59,7 +60,7 @@ export default function NotFoundPage() {
         fontSize: '3rem',
         marginBottom: '1rem',
       }}>
-        🏥
+        <BranchIcon size={42} color="var(--color-primary)" aria-hidden="true" />
       </div>
 
       <h1 style={{
@@ -107,7 +108,7 @@ export default function NotFoundPage() {
             e.currentTarget.style.color = 'var(--color-text)';
           }}
         >
-          ← Go Back
+          Go Back
         </button>
 
         <Link
@@ -126,7 +127,7 @@ export default function NotFoundPage() {
           onMouseEnter={e => e.currentTarget.style.background = 'var(--color-primary-dark)'}
           onMouseLeave={e => e.currentTarget.style.background = 'var(--color-primary)'}
         >
-          🏠 Return to Dashboard
+          <DashboardIcon size={16} style={{ verticalAlign: 'middle', marginRight: '0.5rem' }} /> Return to Dashboard <ArrowRightIcon size={16} style={{ verticalAlign: 'middle', marginLeft: '0.5rem' }} />
         </Link>
       </div>
 

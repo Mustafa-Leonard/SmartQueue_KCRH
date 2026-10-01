@@ -4,6 +4,7 @@ import Card from '../../components/common/Card.jsx';
 import Badge from '../../components/common/Badge.jsx';
 import Spinner from '../../components/common/Spinner.jsx';
 import Button from '../../components/common/Button.jsx';
+import PaginationControls from '../../components/common/PaginationControls.jsx';
 import * as feedbackApi from '../../api/feedbackApi.js';
 import { RefreshIcon, StarIcon, MessageIcon } from '../../components/common/Icons.jsx';
 import { extractArray, extractData } from '../../utils/apiUtils.js';
@@ -13,15 +14,19 @@ export default function FeedbackPage() {
   const [feedbacks, setFeedbacks] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, pages: 1 });
 
   const loadData = async () => {
     setLoading(true);
     try {
       const [feedbackRes, statsRes] = await Promise.all([
-        feedbackApi.getAllFeedback(),
+        feedbackApi.getAllFeedback({ page, limit: 20 }),
         feedbackApi.getFeedbackStats()
       ]);
-      setFeedbacks(extractArray(feedbackRes, 'feedbacks'));
+      const feedbackPayload = extractData(feedbackRes);
+      setFeedbacks(feedbackPayload?.feedbacks || extractArray(feedbackRes, 'feedbacks'));
+      setPagination(feedbackPayload?.pagination || { page: 1, limit: 20, total: 0, pages: 1 });
       const statsData = extractData(statsRes);
       setStats(statsData?.stats || null);
     } catch (err) {
@@ -31,7 +36,7 @@ export default function FeedbackPage() {
     }
   };
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => { loadData(); }, [page]);
 
   const handleMarkRead = async (id) => {
     try {
@@ -45,11 +50,11 @@ export default function FeedbackPage() {
 
   const renderStars = (rating) => {
     return Array.from({ length: 5 }, (_, i) => (
-      <span key={i} style={{ color: i < rating ? '#f59e0b' : 'var(--color-border)', fontSize: '1.1rem' }}>★</span>
+      <StarIcon key={i} size={16} color={i < rating ? '#f59e0b' : 'var(--color-border)'} style={{ fill: i < rating ? '#f59e0b' : 'transparent' }} />
     ));
   };
 
-  const unread = feedbacks.filter(f => !f.isRead).length;
+  const unread = stats?.unread ?? feedbacks.filter(f => !f.isRead).length;
 
   return (
     <div>
@@ -119,6 +124,7 @@ export default function FeedbackPage() {
           ))}
         </div>
       )}
+      <PaginationControls page={page} pages={pagination.pages} total={pagination.total} limit={pagination.limit} onPageChange={setPage} />
     </div>
   );
 }

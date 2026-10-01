@@ -53,13 +53,13 @@
   font-size: var(--font-size-3xl);
   font-weight: var(--font-weight-extrabold);
   margin-bottom: var(--space-4);
-  letter-spacing: -0.5px;
+  letter-spacing: 0;
   color: #fff;
 }
 
 .auth-sidebar p {
   font-size: var(--font-size-base);
-  color: hsla(226, 65%, 80%, 0.9);
+  color: hsla(168, 30%, 88%, 0.9);
   max-width: 420px;
   line-height: var(--line-height-relaxed);
 }
@@ -71,7 +71,7 @@
   flex-direction: column;
   justify-content: center;
   padding: var(--space-10) var(--space-12);
-  box-shadow: -4px 0 30px hsla(226, 40%, 20%, 0.08);
+  box-shadow: -4px 0 30px hsla(184, 39%, 14%, 0.08);
   position: relative;
 }
 
@@ -84,7 +84,7 @@
   font-weight: var(--font-weight-extrabold);
   color: var(--color-text);
   margin-bottom: var(--space-2);
-  letter-spacing: -0.3px;
+  letter-spacing: 0;
 }
 
 .auth-form-header p {
@@ -170,7 +170,7 @@
 .display-logo h1 {
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
-  letter-spacing: -0.5px;
+  letter-spacing: 0;
 }
 
 .display-time {
@@ -221,7 +221,7 @@
   color: var(--color-accent);
   line-height: 1;
   margin: var(--space-2) 0;
-  letter-spacing: -2px;
+  letter-spacing: 0;
 }
 
 .now-serving-counter {
@@ -281,8 +281,8 @@
   align-items: center;
   gap: var(--space-1_5);
   padding: var(--space-1) var(--space-3);
-  background-color: hsla(172, 66%, 36%, 0.15);
-  border: 1px solid hsla(172, 66%, 36%, 0.3);
+  background-color: hsla(17, 72%, 48%, 0.15);
+  border: 1px solid hsla(17, 72%, 48%, 0.3);
   border-radius: var(--radius-full);
   font-size: var(--font-size-xs);
   color: var(--color-accent-light);
@@ -361,7 +361,7 @@
 
 /* ── Flash overlay enhancements ────────────────────────── */
 .display-flash-ticket-number {
-  font-size: clamp(4rem, 15vw, 12rem);
+  font-size: 8rem;
 }
 
 /* ── Skeleton page placeholder ─────────────────────────── */

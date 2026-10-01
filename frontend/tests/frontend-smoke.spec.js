@@ -3,9 +3,9 @@ import { test, expect } from '@playwright/test';
 const APP_URL = 'http://localhost:5173';
 
 const users = {
-  admin: { email: 'admin@kcrh.go.ke', password: 'Admin@2024' },
-  staff: { email: 'staff@kcrh.go.ke', password: 'Staff@2024' },
-  customer: { email: 'patient@gmail.com', password: 'Patient@2024' }
+  admin: { email: 'admin@kcrh.go.ke', password: 'Admin@2024', role: 'ADMIN' },
+  staff: { email: 'staff@kcrh.go.ke', password: 'Staff@2024', role: 'STAFF' },
+  customer: { email: 'patient@gmail.com', password: 'Patient@2024', role: 'CUSTOMER' }
 };
 
 const adminRoutes = [
@@ -15,20 +15,36 @@ const adminRoutes = [
   '/admin/services',
   '/admin/users',
   '/admin/analytics',
-  '/admin/appointments'
+  '/admin/appointments',
+  '/admin/tasks',
+  '/admin/queue-management',
+  '/admin/notifications',
+  '/admin/settings',
+  '/admin/feedback',
+  '/admin/audit-logs'
 ];
 
-const staffRoutes = ['/staff', '/staff/counter'];
-const customerRoutes = ['/customer/dashboard', '/customer/join', '/customer/appointments', '/customer/profile'];
-const publicRoutes = ['/login', '/register', '/display', '/track'];
+const staffRoutes = ['/staff', '/staff/counter', '/staff/tasks', '/staff/notifications'];
+const customerRoutes = [
+  '/customer/dashboard',
+  '/customer/join',
+  '/customer/appointments',
+  '/customer/profile',
+  '/customer/feedback',
+  '/customer/notifications',
+  '/customer/history'
+];
+const publicRoutes = ['/', '/login', '/admin/login', '/register', '/forgot-password', '/reset-password', '/display', '/track'];
 
 async function login(page, user) {
-  await page.goto(`${APP_URL}/login`);
-  await expect(page.getByRole('heading', { name: /patient & staff portal/i })).toBeVisible();
-  await page.getByLabel('Email Address').fill(user.email);
+  const isAdmin = user.role === 'ADMIN';
+  await page.goto(`${APP_URL}${isAdmin ? '/admin/login' : '/login'}`);
+  await expect(page.getByRole('heading', { name: isAdmin ? /administrator login/i : /patient & staff portal/i })).toBeVisible();
+  await page.getByLabel(isAdmin ? 'Admin Email Address' : 'Email Address').fill(user.email);
   await page.getByLabel('Password').fill(user.password);
-  await page.getByRole('button', { name: /secure log in/i }).click();
+  await page.getByRole('button', { name: isAdmin ? /access admin console/i : /secure log in/i }).click();
   await page.waitForLoadState('networkidle');
+  await expect(page).toHaveURL(new RegExp(isAdmin ? '/admin/dashboard' : user.role === 'STAFF' ? '/staff' : '/customer/dashboard'));
 }
 
 function attachPageErrorWatcher(page) {

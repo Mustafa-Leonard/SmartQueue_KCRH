@@ -41,7 +41,10 @@ export default function QueueManagementPage() {
         ticketApi.getBranchTickets(branchId)
       ]);
       const queuePayload = extractData(queueRes);
-      setQueue(queuePayload?.queue || null);
+      const ticketsPayload = extractData(ticketsRes);
+      setQueue(queuePayload?.queue
+        ? { ...queuePayload.queue, tickets: ticketsPayload?.tickets || [] }
+        : null);
     } catch (err) {
       console.error(err);
       toast.error('Failed to load queue data');

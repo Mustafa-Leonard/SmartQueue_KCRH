@@ -1,50 +1,49 @@
-# 🏥 SmartQueue — Kilifi County Referral Hospital
+# SmartQueue — Kilifi County Referral Hospital
 
 > **A modern, real-time queue management system** for Kilifi County Referral Hospital (KCRH). Replaces manual ticketing with a digital, data-driven queue experience for patients, staff, and administrators.
 
 ---
 
-## ✨ Features
+## Features
 
 ### For Patients (Customers)
-- ✅ Online registration and secure login
-- ✅ Join a queue digitally — walk-in or appointment
-- ✅ Real-time ticket tracking (position, estimated wait time)
-- ✅ Get notified via **SMS** (Africa's Talking) and **Email** (Nodemailer) when called
-- ✅ Book appointments in advance with time slot selection
-- ✅ View full ticket history and upcoming appointments
+- Online registration and login
+- Join a queue digitally, by walk-in or appointment
+- Ticket tracking with position and estimated wait time
+- Notifications by SMS (Africa's Talking) and email (Nodemailer)
+- Appointment requests with time slot selection
+- Ticket history and upcoming appointments
 
 ### For Staff (Nurses/Clerks)
-- ✅ Staff console dashboard — call next, serve, skip, no-show
-- ✅ Toggle counter status (Open / Closed / Paused)
-- ✅ Transfer tickets between counters
-- ✅ Real-time queue updates via WebSockets
+- Staff console for calling, serving, skipping, and marking no-shows
+- Counter status controls
+- Ticket transfers between counters
+- Live queue updates via WebSockets
 
 ### For Administrators
-- ✅ Full department (branch) management
-- ✅ Service catalogue per department
-- ✅ Counter and staff assignment management
-- ✅ User management (ADMIN / STAFF / CUSTOMER roles)
-- ✅ Appointments oversight and confirmation
-- ✅ Analytics dashboard — wait times, throughput, no-show rates, peak hours
-- ✅ Recharts-powered visualizations
+- Department and service management
+- Counter and staff assignment management
+- User management for ADMIN, STAFF, and CUSTOMER roles
+- Appointment review and confirmation
+- Analytics for wait times, throughput, no-shows, and peak periods
+- Queue and service visualizations
 
 ### Display Board (TV/Kiosk)
-- ✅ Public display screen for waiting area
-- ✅ Shows: Now Serving tickets + Next Up queue list
-- ✅ Live clock, scrolling ticker
-- ✅ Real-time via Socket.io + 30-second auto-refresh
+- Public display screen for waiting areas
+- Now Serving and Next Up ticket lists
+- Live clock and announcements
+- Socket.io updates with periodic refresh
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Layer | Technology |
 |---|---|
 | **Backend API** | Node.js 20 + Express 5 |
 | **Real-time** | Socket.io 4 |
 | **ORM** | Prisma 5 |
-| **Database** | PostgreSQL 16 (via Docker) |
+| **Database** | SQLite (local development) |
 | **SMS** | Africa's Talking SDK |
 | **Email** | Nodemailer (Gmail SMTP) |
 | **Frontend** | React 18 + Vite 5 |
@@ -55,7 +54,7 @@
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 SmartQueue/
@@ -115,7 +114,7 @@ SmartQueue/
 │   ├── API.md                 # Full REST API reference
 │   └── ARCHITECTURE.md        # System architecture diagram
 │
-├── docker-compose.yml         # PostgreSQL 16 + pgAdmin 4
+├── docker-compose.yml         # Optional PostgreSQL tooling (not used by default)
 ├── .gitignore
 ├── .prettierrc
 └── .eslintrc.json
@@ -123,11 +122,10 @@ SmartQueue/
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 - Node.js 20+
-- Docker & Docker Compose
 - npm 9+
 
 ### 1. Clone the repository
@@ -137,24 +135,14 @@ git clone <repo-url>
 cd SmartQueue
 ```
 
-### 2. Start the database
-
-```bash
-docker compose up -d
-```
-PostgreSQL runs on port `5432`. pgAdmin runs on port `5050` (admin@kcrh.go.ke / Admin@2026)
-
-### 3. Configure backend environment
+### 2. Configure backend environment
 
 ```bash
 cp backend/.env.example backend/.env
 ```
-Edit `backend/.env` and fill in:
-- `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET` — generate strong secrets
-- `ATK_API_KEY` — your Africa's Talking API key (get from [africastalking.com](https://africastalking.com))
-- `SMTP_USER` and `SMTP_PASS` — your email credentials
+SQLite is stored in `backend/prisma/dev.db`; no database server is required for local development. Configure notification integrations in `backend/.env` for local testing.
 
-### 4. Set up the database
+### 3. Set up the database
 
 ```bash
 cd backend
@@ -164,13 +152,20 @@ npx prisma db seed
 ```
 This creates all tables and seeds: 1 admin account, 5 hospital departments, 10 services, 8 counters.
 
-**Default admin credentials:**
-```
-Email: admin@kcrh.go.ke
-Password: Admin@KCRH2024!
-```
+The seed data and its demo accounts are for local development only. The seed script refuses to run when `NODE_ENV=production`.
 
-### 5. Start the backend
+## Production Deployment Gate
+
+This repository is not yet certified for production handling of patient information. Before deployment:
+
+- Migrate from the current SQLite-only Prisma schema to a production database with access controls, encryption at rest, tested backups, and a recovery procedure.
+- Serve the frontend and API over HTTPS, use unique secrets from a secret manager, and set `FRONTEND_URL` to the exact HTTPS frontend origin.
+- Configure a production SMTP account and notification provider. Production startup requires enabled email notifications for password recovery.
+- Create the first administrator with `backend/scripts/ensureAdmin.js` using `INITIAL_ADMIN_EMAIL`, `INITIAL_ADMIN_NAME`, `INITIAL_ADMIN_PHONE`, and a unique `INITIAL_ADMIN_PASSWORD` supplied through the deployment environment.
+- Review privacy notices, data retention, access logging, incident response, and local health-data obligations with the hospital before collecting patient data.
+- Verify role boundaries, account recovery, monitoring, backup restoration, and load limits in a staging deployment.
+
+### 4. Start the backend
 
 ```bash
 # From backend/
@@ -178,7 +173,7 @@ npm run dev
 ```
 Backend runs at `http://localhost:5000`
 
-### 6. Start the frontend
+### 5. Start the frontend
 
 ```bash
 # From frontend/
@@ -189,7 +184,7 @@ Frontend runs at `http://localhost:5173`
 
 ---
 
-## 🔗 Important URLs
+## Important URLs
 
 | URL | Purpose |
 |---|---|
@@ -201,7 +196,7 @@ Frontend runs at `http://localhost:5173`
 
 ---
 
-## 👥 User Roles
+## User Roles
 
 | Role | Access |
 |---|---|
@@ -211,7 +206,7 @@ Frontend runs at `http://localhost:5173`
 
 ---
 
-## 🔌 Real-time Events (Socket.io)
+## Real-time Events (Socket.io)
 
 | Event | Direction | Data |
 |---|---|---|
@@ -223,7 +218,7 @@ Frontend runs at `http://localhost:5173`
 
 ---
 
-## 📊 Data Model Overview
+## Data Model Overview
 
 ```
 User ──────┐
@@ -249,6 +244,6 @@ Ticket ────┐
 
 ---
 
-## 📄 License
+## License
 
 Built for **Kilifi County Referral Hospital**. All rights reserved.

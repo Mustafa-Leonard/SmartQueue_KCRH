@@ -6,21 +6,26 @@ import Spinner from '../../components/common/Spinner.jsx';
 import Table from '../../components/common/Table.jsx';
 import * as notificationApi from '../../api/notificationApi.js';
 import { RefreshIcon, PhoneIcon, MailIcon, CheckCircleIcon, CrossIcon } from '../../components/common/Icons.jsx';
-import { extractArray } from '../../utils/apiUtils.js';
+import { extractArray, extractData } from '../../utils/apiUtils.js';
 import { formatDateTime } from '../../utils/formatters.js';
 import Button from '../../components/common/Button.jsx';
+import PaginationControls from '../../components/common/PaginationControls.jsx';
 
 export default function NotificationLogPage() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, pages: 1 });
 
   const loadNotifications = async () => {
     setLoading(true);
     try {
-      const data = await notificationApi.getNotifications({ type: typeFilter, status: statusFilter });
-      setNotifications(extractArray(data, 'notifications'));
+      const data = await notificationApi.getNotifications({ type: typeFilter, status: statusFilter, page, limit: 20 });
+      const payload = extractData(data);
+      setNotifications(payload?.notifications || extractArray(data, 'notifications'));
+      setPagination(payload?.pagination || { page: 1, limit: 20, total: 0, pages: 1 });
     } catch (err) {
       toast.error('Failed to load notification log');
     } finally {
@@ -28,9 +33,9 @@ export default function NotificationLogPage() {
     }
   };
 
-  useEffect(() => { loadNotifications(); }, [typeFilter, statusFilter]);
+  useEffect(() => { loadNotifications(); }, [typeFilter, statusFilter, page]);
 
-  const statusVariants = { SENT: 'success', DELIVERED: 'success', SIMULATED: 'info', FAILED: 'error', DISABLED: 'default' };
+  const statusVariants = { SENT: 'success', DELIVERED: 'success', SIMULATED: 'info', FAILED: 'error', DISABLED: 'default', READ: 'default' };
   const typeIcons = { SMS: <PhoneIcon size={14} />, EMAIL: <MailIcon size={14} /> };
 
   const selectStyle = {
@@ -85,7 +90,7 @@ export default function NotificationLogPage() {
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
             <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>Type:</span>
-            <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} style={selectStyle}>
+            <select value={typeFilter} onChange={(e) => { setTypeFilter(e.target.value); setPage(1); }} style={selectStyle}>
               <option value="">All Types</option>
               <option value="SMS">SMS</option>
               <option value="EMAIL">Email</option>
@@ -93,7 +98,7 @@ export default function NotificationLogPage() {
           </div>
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
             <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>Status:</span>
-            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={selectStyle}>
+            <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }} style={selectStyle}>
               <option value="">All Statuses</option>
               <option value="SENT">Sent</option>
               <option value="DELIVERED">Delivered</option>
@@ -112,6 +117,7 @@ export default function NotificationLogPage() {
           <Table columns={columns} data={notifications} />
         )}
       </Card>
+      <PaginationControls page={page} pages={pagination.pages} total={pagination.total} limit={pagination.limit} onPageChange={setPage} />
     </div>
   );
 }

@@ -10,7 +10,7 @@ import Spinner from '../../components/common/Spinner.jsx';
 import Table from '../../components/common/Table.jsx';
 import * as branchApi from '../../api/branchApi.js';
 import * as counterApi from '../../api/counterApi.js';
-import { EditIcon, TrashIcon, PlusIcon, MapPinIcon, ClockIcon, CounterIcon, UsersIcon, CheckIcon, BanIcon } from '../../components/common/Icons.jsx';
+import { EditIcon, TrashIcon, PlusIcon, MapPinIcon, PhoneIcon, ClockIcon, CounterIcon, UsersIcon, CheckIcon, BanIcon } from '../../components/common/Icons.jsx';
 import { extractArray } from '../../utils/apiUtils.js';
 
 export default function BranchesPage() {
@@ -123,7 +123,7 @@ export default function BranchesPage() {
         <div>
           <div style={{ fontWeight: 600, color: 'var(--color-primary)' }}>{row.name}</div>
           <div style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>{row.description || 'No description'}</div>
-          {row.phone && <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.125rem' }}>📞 {row.phone}</div>}
+          {row.phone && <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.125rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}><PhoneIcon size={12} /> {row.phone}</div>}
         </div>
       )
     },

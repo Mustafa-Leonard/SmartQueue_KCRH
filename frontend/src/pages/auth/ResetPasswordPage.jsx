@@ -6,6 +6,7 @@ import Input from '../../components/common/Input.jsx';
 import Button from '../../components/common/Button.jsx';
 import { CheckCircleIcon } from '../../components/common/Icons.jsx';
 import * as authApi from '../../api/authApi.js';
+import { PASSWORD_REQUIREMENTS, validatePassword } from '../../utils/passwordValidation.js';
 
 const ResetPasswordPage = () => {
   const [searchParams] = useSearchParams();
@@ -76,7 +77,7 @@ const ResetPasswordPage = () => {
           </svg>
         </div>
         <h1>Hospital Queue Management System</h1>
-        <p>Create a strong new password for your account. Use at least 8 characters with a mix of letters, numbers, and symbols.</p>
+        <p>Create a new password for your account.</p>
       </div>
 
       <div className="auth-form-container">
@@ -114,9 +115,12 @@ const ResetPasswordPage = () => {
               error={errors.newPassword}
               {...register('newPassword', { 
                 required: 'New password is required',
-                minLength: { value: 8, message: 'Must be at least 8 characters' }
+                validate: validatePassword
               })}
             />
+            <p style={{ marginTop: '-0.5rem', marginBottom: '0.75rem', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+              {PASSWORD_REQUIREMENTS}
+            </p>
 
             <Input
               label="Confirm New Password"

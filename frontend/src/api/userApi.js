@@ -1,9 +1,11 @@
 import api from './axios.js';
 
-export const getUsers = async (role, search) => {
+export const getUsers = async (role, search, page = 1, limit = 20) => {
   const params = {};
   if (role) params.role = role;
   if (search) params.search = search;
+  params.page = page;
+  params.limit = limit;
   const response = await api.get('/users', { params });
   return response.data;
 };

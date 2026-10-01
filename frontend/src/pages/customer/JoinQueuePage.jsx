@@ -30,32 +30,33 @@ import {
   MegaphoneIcon
 } from '../../components/common/Icons.jsx';
 import { extractData, extractArray } from '../../utils/apiUtils.js';
+import { Accessibility, Apple, Baby, Bone, Brain, Building2, Ear, Eye, FlaskConical, HeartPulse, Hospital, Pill, PersonStanding, ScanLine, Siren, Stethoscope, UserRound } from 'lucide-react';
 
 const DEPT_ICONS = {
-  'Outpatient': '🏥',
-  'Pharmacy': '💊',
-  'Laboratory': '🔬',
-  'Radiology': '🩻',
-  'Emergency': '🚑',
-  'Maternity': '👶',
-  'Pediatrics': '🧒',
-  'Cardiology': '❤️',
-  'Orthopedics': '🦴',
-  'Dental': '🦷',
-  'Eye': '👁️',
-  'ENT': '👂',
-  'Dermatology': '🧴',
-  'Psychiatry': '🧠',
-  'Nutrition': '🥗',
-  'Physiotherapy': '🏃',
-  'General': '🏛️',
+  'Outpatient': Stethoscope,
+  'Pharmacy': Pill,
+  'Laboratory': FlaskConical,
+  'Radiology': ScanLine,
+  'Emergency': Siren,
+  'Maternity': Baby,
+  'Pediatrics': Baby,
+  'Cardiology': HeartPulse,
+  'Orthopedics': Bone,
+  'Dental': Accessibility,
+  'Eye': Eye,
+  'ENT': Ear,
+  'Dermatology': UserRound,
+  'Psychiatry': Brain,
+  'Nutrition': Apple,
+  'Physiotherapy': PersonStanding,
+  'General': Building2,
 };
 
 function getDepartmentIcon(name) {
   for (const [key, icon] of Object.entries(DEPT_ICONS)) {
     if (name.toLowerCase().includes(key.toLowerCase())) return icon;
   }
-  return '🏛️';
+  return Hospital;
 }
 
 function getDepartmentStatus(queue, waitingCount) {
@@ -296,7 +297,7 @@ export default function JoinQueuePage() {
                     const servingTicket = queueInfo.servingTicket;
                     const status = getDepartmentStatus(queueInfo, waitingCount);
                     const estWait = estimateWaitTime(waitingCount);
-                    const icon = getDepartmentIcon(b.name);
+                    const DepartmentIcon = getDepartmentIcon(b.name);
 
                     return (
                       <Card 
@@ -319,9 +320,9 @@ export default function JoinQueuePage() {
                             width: 44, height: 44, borderRadius: 'var(--radius-md)',
                             backgroundColor: 'var(--color-primary-50)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            flexShrink: 0, fontSize: '1.3rem'
+                            flexShrink: 0, color: 'var(--color-primary)'
                           }}>
-                            {icon}
+                            <DepartmentIcon size={22} strokeWidth={1.8} aria-hidden="true" />
                           </div>
                           <div style={{ minWidth: 0, flex: 1 }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.125rem' }}>

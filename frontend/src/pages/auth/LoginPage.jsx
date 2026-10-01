@@ -25,9 +25,9 @@ const LoginPage = () => {
       // Route based on role (Staff or Patient)
       const redirectMap = {
         STAFF: '/staff',
-        CUSTOMER: '/join'
+        CUSTOMER: '/customer/dashboard'
       };
-      navigate(redirectMap[response.user.role] || '/join');
+      navigate(redirectMap[response.user.role] || '/customer/dashboard');
     } catch (err) {
       toast.error(err.message || 'Login failed. Please verify credentials.');
     } finally {

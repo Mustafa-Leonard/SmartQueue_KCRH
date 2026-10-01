@@ -13,6 +13,7 @@ import {
   LockIcon, CameraIcon, HistoryIcon, BellIcon,
   AlertIcon, CrossIcon, CheckIcon 
 } from '../../components/common/Icons.jsx';
+import { PASSWORD_REQUIREMENTS, validatePassword } from '../../utils/passwordValidation.js';
 
 export default function CustomerProfilePage() {
   const { user, updateUser } = useContext(AuthContext);
@@ -105,7 +106,7 @@ export default function CustomerProfilePage() {
     }
     setPwSubmitting(true);
     try {
-      await authApi.updateProfile({ password: data.newPassword });
+      await authApi.updateProfile({ currentPassword: data.currentPassword, password: data.newPassword });
       toast.success('Password changed successfully');
       resetPwForm();
     } catch (err) {
@@ -233,7 +234,7 @@ export default function CustomerProfilePage() {
               {/* Medical Information */}
               <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '1.25rem' }}>
                 <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  🏥 Medical Information
+                  <CrossIcon size={16} color="var(--color-primary)" /> Medical Information
                 </h3>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
                   <Input label="Weight (kg)" type="text" {...profileRegister('weight')} placeholder="e.g. 70" />
@@ -323,7 +324,7 @@ export default function CustomerProfilePage() {
                 error={pwErrors.newPassword}
                 {...pwRegister('newPassword', { 
                   required: 'New password is required',
-                  minLength: { value: 6, message: 'Must be at least 6 characters' }
+                  validate: validatePassword
                 })}
               />
               <Input
@@ -334,6 +335,9 @@ export default function CustomerProfilePage() {
                 {...pwRegister('confirmPassword', { required: 'Confirm your new password' })}
               />
             </div>
+            <p style={{ marginTop: '-0.5rem', marginBottom: '0.75rem', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+              {PASSWORD_REQUIREMENTS}
+            </p>
             <Button type="submit" variant="primary" disabled={pwSubmitting} style={{ width: 'fit-content' }} icon={<LockIcon size={16} />}>
               {pwSubmitting ? 'Updating...' : 'Update Password'}
             </Button>

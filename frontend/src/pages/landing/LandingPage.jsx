@@ -1,31 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth.js';
-import { ArrowRightIcon, BellIcon, ClockIcon, CalendarIcon, CheckCircleIcon, MapPinIcon, PhoneIcon, MailIcon, ActivityIcon, UsersIcon, TicketIcon, QrCodeIcon, FileTextIcon, LightbulbIcon, SendIcon } from '../../components/common/Icons.jsx';
+import { ArrowRightIcon, BellIcon, CalendarIcon, MapPinIcon, ActivityIcon, TicketIcon, QrCodeIcon, FileTextIcon } from '../../components/common/Icons.jsx';
 import './LandingStyles.css';
-
-const stats = [
-  { value: '5,000+', label: 'Patients Served Monthly', icon: UsersIcon },
-  { value: '< 15 min', label: 'Average Wait Time', icon: ClockIcon },
-  { value: '98%', label: 'Satisfaction Rate', icon: CheckCircleIcon },
-  { value: '24/7', label: 'System Availability', icon: ActivityIcon },
-];
 
 const features = [
   {
     icon: QrCodeIcon,
     title: 'Digital Queue Ticketing',
-    description: 'Join the queue from your phone. No need to wait in long physical lines. Receive a digital ticket instantly upon registration.',
+    description: 'Choose a department and service, then receive a ticket you can follow from the patient portal.',
   },
   {
     icon: BellIcon,
     title: 'Real-Time SMS & Email Alerts',
-    description: 'Get notified via SMS and email when your turn approaches. Track your position live and arrive exactly when called.',
+    description: 'Receive ticket updates through the contact channels enabled for your account and hospital service.',
   },
   {
     icon: CalendarIcon,
     title: 'Online Appointment Booking',
-    description: 'Schedule appointments in advance with preferred time slots. Reduce waiting time by booking your visit ahead of arrival.',
+    description: 'Choose an available service and time slot, then review your appointment request in your account.',
   },
   {
     icon: TicketIcon,
@@ -34,8 +27,8 @@ const features = [
   },
   {
     icon: FileTextIcon,
-    title: 'Digital Medical Records',
-    description: 'Your visit history and medical information are securely stored and accessible across departments for seamless care.',
+    title: 'Visit History',
+    description: 'Review completed queue visits and the service details associated with each ticket.',
   },
   {
     icon: ActivityIcon,
@@ -48,20 +41,20 @@ const steps = [
   {
     number: '01',
     title: 'Join the Queue',
-    description: 'Walk into the hospital or join online. Select your department and service. Receive a digital ticket number instantly.',
-    details: 'Register at the kiosk, through the web portal, or via our mobile app.'
+    description: 'Sign in, choose a department and service, and create a queue ticket online.',
+    details: 'Your ticket and current queue position are available in the patient portal.'
   },
   {
     number: '02',
     title: 'Get Real-Time Updates',
-    description: 'Monitor your position live. Receive SMS and email alerts when your turn is approaching.',
-    details: 'Track your ticket from anywhere. No need to crowd the waiting area.'
+    description: 'Follow your ticket status and queue position as staff update the service queue.',
+    details: 'Notifications depend on the contact details and channels configured for your account.'
   },
   {
     number: '03',
     title: 'Get Served at Your Counter',
-    description: 'Proceed to the assigned counter when called. Your ticket is validated, and service is delivered efficiently.',
-    details: 'Complete service, receive a digital receipt, and provide feedback.'
+    description: 'Check your ticket for its current status and counter details when staff call you.',
+    details: 'After a completed visit, you can leave feedback from your account.'
   },
 ];
 
@@ -69,6 +62,7 @@ export default function LandingPage() {
   const { isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
@@ -94,6 +88,7 @@ export default function LandingPage() {
   }
 
   const scrollToSection = (id) => {
+    setIsMenuOpen(false);
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   };
 
@@ -118,14 +113,21 @@ export default function LandingPage() {
               Hospital Queue Management System
             </span>
           </Link>
-          <div className="landing-nav-links">
+          <div id="landing-navigation" className={`landing-nav-links ${isMenuOpen ? 'landing-nav-links--open' : ''}`}>
             <button onClick={() => scrollToSection('features')} className="landing-nav-link">Features</button>
             <button onClick={() => scrollToSection('how-it-works')} className="landing-nav-link">How It Works</button>
             <button onClick={() => scrollToSection('footer')} className="landing-nav-link">Contact</button>
-            <Link to="/login" className="landing-nav-btn landing-nav-btn--primary">Patient Login</Link>
-            <Link to="/track" className="landing-nav-btn landing-nav-btn--outline">Track Ticket</Link>
+            <Link to="/login" onClick={() => setIsMenuOpen(false)} className="landing-nav-btn landing-nav-btn--primary">Patient Login</Link>
+            <Link to="/track" onClick={() => setIsMenuOpen(false)} className="landing-nav-btn landing-nav-btn--outline">Track Ticket</Link>
           </div>
-          <button className="landing-mobile-menu" aria-label="Menu">
+          <button
+            className="landing-mobile-menu"
+            type="button"
+            aria-label={isMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            aria-expanded={isMenuOpen}
+            aria-controls="landing-navigation"
+            onClick={() => setIsMenuOpen(open => !open)}
+          >
             <span /><span /><span />
           </button>
         </div>
@@ -135,43 +137,24 @@ export default function LandingPage() {
       <section className="landing-hero">
         <div className="landing-hero-bg" />
         <div className="landing-hero-content">
-          <div className="landing-hero-badge">Kilifi County Referral Hospital</div>
+          <div className="landing-hero-badge">Kilifi County Referral Hospital · Kilifi, Kenya</div>
           <h1 className="landing-hero-title">
-            Smart Queue Management
-            <span className="gradient-text"> System</span>
+            Queue services, made easier to follow.
           </h1>
           <p className="landing-hero-subtitle">
-            Eliminate long waiting lines with our digital queue system. Join remotely, 
-            track your turn in real-time, and receive instant alerts when it's time to 
-            be served.
+            Join a hospital service queue, follow your ticket, and review appointment details through the Kilifi County Referral Hospital patient portal.
           </p>
           <div className="landing-hero-actions">
             <Link to="/login" className="landing-hero-btn landing-hero-btn--primary">
-              Get Started
+              Patient sign in
               <ArrowRightIcon size={18} />
             </Link>
             <Link to="/register" className="landing-hero-btn landing-hero-btn--secondary">
-              Register as Patient
+              Create an account
             </Link>
             <Link to="/track" className="landing-hero-btn landing-hero-btn--ghost">
               Track Your Ticket
             </Link>
-          </div>
-          <div className="landing-hero-stats">
-            <div className="landing-hero-stat">
-              <span className="landing-hero-stat-value">5,000+</span>
-              <span className="landing-hero-stat-label">Patients Served</span>
-            </div>
-            <div className="landing-hero-stat-divider" />
-<div className="landing-hero-stat">
-              <span className="landing-hero-stat-value">{'<15 min'}</span>
-              <span className="landing-hero-stat-label">Avg. Wait Time</span>
-            </div>
-            <div className="landing-hero-stat-divider" />
-            <div className="landing-hero-stat">
-              <span className="landing-hero-stat-value">98%</span>
-              <span className="landing-hero-stat-label">Satisfaction</span>
-            </div>
           </div>
         </div>
       </section>
@@ -182,8 +165,7 @@ export default function LandingPage() {
           <span className="landing-section-tag">Features</span>
           <h2 className="landing-section-title">Why Choose Our System?</h2>
           <p className="landing-section-desc">
-            A modern, patient-centric approach to hospital queue management that enhances 
-            the healthcare experience for everyone.
+            Queue tickets, appointment requests, and visit history in one place.
           </p>
         </div>
         <div className="landing-features-grid">
@@ -227,31 +209,12 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Stats Section ──────────────────────────────── */}
-      <section className="landing-section landing-stats-section">
-        <div className="landing-stats-grid">
-          {stats.map((stat, idx) => {
-            const Icon = stat.icon;
-            return (
-              <div key={idx} className="landing-stat-card animate-fade-in" style={{ animationDelay: `${idx * 0.1}s` }}>
-                <div className="landing-stat-icon">
-                  <Icon size={24} />
-                </div>
-                <span className="landing-stat-value">{stat.value}</span>
-                <span className="landing-stat-label">{stat.label}</span>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
       {/* ── CTA Section ────────────────────────────────── */}
       <section className="landing-section landing-cta">
         <div className="landing-cta-content">
-          <h2 className="landing-cta-title">Ready to Experience a Shorter Wait?</h2>
+          <h2 className="landing-cta-title">Plan your next visit</h2>
           <p className="landing-cta-desc">
-            Join thousands of patients who have already embraced digital queue management 
-            at Kilifi County Referral Hospital.
+            Sign in to manage queue tickets and appointment requests, or track a ticket using its code.
           </p>
           <div className="landing-cta-actions">
             <Link to="/login" className="landing-hero-btn landing-hero-btn--primary">
@@ -286,21 +249,12 @@ export default function LandingPage() {
                 <span>Hospital Queue Management System</span>
               </div>
               <p className="landing-footer-desc">
-                Kilifi County Referral Hospital's digital queue management system. 
-                Modernizing patient flow for better healthcare delivery.
+                Patient access to queue tickets, appointment requests, and visit history for Kilifi County Referral Hospital.
               </p>
               <div className="landing-footer-contact">
                 <div className="landing-footer-contact-item">
                   <MapPinIcon size={14} />
-                  <span>Kilifi Town, Kilifi County, Kenya</span>
-                </div>
-                <div className="landing-footer-contact-item">
-                  <PhoneIcon size={14} />
-                  <span>+254 712 345 678</span>
-                </div>
-                <div className="landing-footer-contact-item">
-                  <MailIcon size={14} />
-                  <span>info@kcrh.go.ke</span>
+                  <span>Kilifi County, Kenya</span>
                 </div>
               </div>
             </div>
@@ -320,9 +274,9 @@ export default function LandingPage() {
             <div className="landing-footer-col">
               <h4 className="landing-footer-col-title">For Patients</h4>
               <ul className="landing-footer-links">
-                <li><Link to="/join">Join Queue</Link></li>
-                <li><Link to="/appointment">Book Appointment</Link></li>
-                <li><Link to="/customer/history">Queue History</Link></li>
+                <li><Link to="/customer/join">Join Queue</Link></li>
+                <li><Link to="/customer/appointments">Appointments</Link></li>
+                <li><Link to="/customer/history">Visit History</Link></li>
                 <li><Link to="/customer/feedback">Give Feedback</Link></li>
               </ul>
             </div>
@@ -342,11 +296,9 @@ export default function LandingPage() {
 
           <div className="landing-footer-bottom">
             <p>&copy; {new Date().getFullYear()} Kilifi County Referral Hospital. All rights reserved.</p>
-            <div className="landing-footer-bottom-links">
-              <Link to="/login">Privacy Policy</Link>
-              <span className="landing-footer-dot">·</span>
-              <Link to="/login">Terms of Service</Link>
-            </div>
+            <a href="https://commons.wikimedia.org/wiki/File:A_patient_waiting_room_at_an_urgent_care_clinic_and_doctor%E2%80%99s_office_in_North_Carolina,_United_States_02.jpg" target="_blank" rel="noreferrer">
+              Photo: Harrison Keely / Wikimedia Commons, CC BY 4.0
+            </a>
           </div>
         </div>
       </footer>

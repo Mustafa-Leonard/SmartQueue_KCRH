@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { AuthContext } from '../../context/AuthContext.jsx';
 import Input from '../../components/common/Input.jsx';
 import Button from '../../components/common/Button.jsx';
+import { PASSWORD_REQUIREMENTS, validatePassword } from '../../utils/passwordValidation.js';
 
 const RegisterPage = () => {
   const { register: signup } = useContext(AuthContext);
@@ -25,7 +26,7 @@ const RegisterPage = () => {
     try {
       await signup(data);
       toast.success('Patient account registered successfully!');
-      navigate('/join');
+      navigate('/customer/dashboard');
     } catch (err) {
       toast.error(err.message || 'Registration failed. Try again.');
     } finally {
@@ -59,7 +60,10 @@ const RegisterPage = () => {
             label="Full Name"
             placeholder="e.g. John Kamau"
             error={errors.name}
-            {...register('name', { required: 'Full name is required' })}
+            {...register('name', {
+              required: 'Full name is required',
+              minLength: { value: 2, message: 'Name must be at least 2 characters' }
+            })}
           />
 
           <Input
@@ -96,9 +100,12 @@ const RegisterPage = () => {
             error={errors.password}
             {...register('password', { 
               required: 'Password is required',
-              minLength: { value: 6, message: 'Password must be at least 6 characters' }
+              validate: validatePassword
             })}
           />
+          <p style={{ marginTop: '-0.5rem', marginBottom: '0.75rem', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+            {PASSWORD_REQUIREMENTS}
+          </p>
 
           <Input
             label="Confirm Password"

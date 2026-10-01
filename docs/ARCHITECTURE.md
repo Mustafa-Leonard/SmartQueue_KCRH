@@ -41,7 +41,7 @@ SmartQueue is a three-tier web application:
             ▼
 ┌──────────────────────────────────────────────────────────────┐
 │                       DATA LAYER                             │
-│  PostgreSQL 16 (Docker)                                      │
+│  SQLite (Prisma-managed local database)                      │
 │  • users           • branches        • services              │
 │  • counters        • queues          • tickets               │
 │  • appointments    • notifications                           │
@@ -179,7 +179,7 @@ backend/src/
 
 ```
 # Backend /.env
-DATABASE_URL=postgresql://smartqueue_user:SmartQueue@2024!@localhost:5432/smartqueue_db
+DATABASE_URL=file:./dev.db
 JWT_ACCESS_SECRET=<32+ char random string>
 JWT_REFRESH_SECRET=<32+ char random string>
 JWT_ACCESS_EXPIRES_IN=15m
@@ -223,8 +223,8 @@ Internet
     [PM2 cluster mode]
          │
          ▼
-    [PostgreSQL 16]
-    [Managed or self-hosted]
+    [SQLite database file]
+    [Persistent storage and regular backups]
 ```
 
 ---

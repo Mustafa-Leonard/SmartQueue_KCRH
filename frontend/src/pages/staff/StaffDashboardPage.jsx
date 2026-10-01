@@ -215,9 +215,9 @@ export default function StaffDashboardPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <Badge variant={badgeVariants[counter.status]}>{counter.status}</Badge>
           <select value={counter.status} onChange={(e) => handleToggleStatus(e.target.value)} className="form-select" style={{ padding: '0.4rem 0.75rem' }}>
-            <option value="OPEN">🟢 Open</option>
-            <option value="PAUSED">🟡 Paused</option>
-            <option value="CLOSED">🔴 Closed</option>
+            <option value="OPEN">Open</option>
+            <option value="PAUSED">Paused</option>
+            <option value="CLOSED">Closed</option>
           </select>
         </div>
       </div>

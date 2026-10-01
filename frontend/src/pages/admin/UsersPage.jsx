@@ -8,18 +8,20 @@ import Modal from '../../components/common/Modal.jsx';
 import Badge from '../../components/common/Badge.jsx';
 import Spinner from '../../components/common/Spinner.jsx';
 import Table from '../../components/common/Table.jsx';
+import PaginationControls from '../../components/common/PaginationControls.jsx';
 import * as userApi from '../../api/userApi.js';
-import * as branchApi from '../../api/branchApi.js';
 import { EditIcon, BanIcon, CheckIcon, PlusIcon, UsersIcon, SearchIcon, ClockIcon, HistoryIcon } from '../../components/common/Icons.jsx';
-import { extractArray } from '../../utils/apiUtils.js';
+import { extractData } from '../../utils/apiUtils.js';
 import { formatDate } from '../../utils/formatters.js';
 
 export default function UsersPage() {
   const [users, setUsers] = useState([]);
-  const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, pages: 1 });
+  const [roleCounts, setRoleCounts] = useState({ ADMIN: 0, STAFF: 0, CUSTOMER: 0 });
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
@@ -31,12 +33,11 @@ export default function UsersPage() {
   const loadUsers = async () => {
     setLoading(true);
     try {
-      const [usersData, branchesData] = await Promise.all([
-        userApi.getUsers(roleFilter, search),
-        branchApi.getBranches()
-      ]);
-      setUsers(extractArray(usersData, 'users'));
-      setBranches(extractArray(branchesData, 'branches'));
+      const usersData = await userApi.getUsers(roleFilter, search, page, 20);
+      const usersPayload = extractData(usersData);
+      setUsers(usersPayload?.users || []);
+      setPagination(usersPayload?.pagination || { page: 1, limit: 20, total: 0, pages: 1 });
+      setRoleCounts(usersPayload?.roleCounts || { ADMIN: 0, STAFF: 0, CUSTOMER: 0 });
     } catch (err) {
       toast.error('Failed to load users');
     } finally {
@@ -44,9 +45,13 @@ export default function UsersPage() {
     }
   };
 
-  useEffect(() => { loadUsers(); }, [roleFilter]);
+  useEffect(() => { loadUsers(); }, [roleFilter, page]);
 
-  const handleSearch = (e) => { e.preventDefault(); loadUsers(); };
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (page === 1) loadUsers();
+    else setPage(1);
+  };
 
   const onAddSubmit = async (data) => {
     setSubmitting(true);
@@ -71,7 +76,6 @@ export default function UsersPage() {
       if (data.email) updateData.email = data.email;
       if (data.phone) updateData.phone = data.phone;
       if (data.role) updateData.role = data.role;
-      if (data.branchId) updateData.branchId = data.branchId;
       await userApi.updateUser(selectedUser.id, updateData);
       toast.success('User updated successfully');
       setIsEditModalOpen(false);
@@ -91,7 +95,6 @@ export default function UsersPage() {
     setValue('email', user.email);
     setValue('phone', user.phone);
     setValue('role', user.role);
-    setValue('branchId', user.branchId || '');
     setIsEditModalOpen(true);
   };
 
@@ -145,9 +148,11 @@ export default function UsersPage() {
       }
     },
     {
-      header: 'Department',
-      accessor: 'branchId',
-      render: (val, row) => <span>{row.branch?.name || '—'}</span>
+      header: 'Assignment',
+      accessor: 'assignedCounter',
+      render: (val) => val
+        ? `${val.branch?.name || 'Department'} — ${val.name}`
+        : 'No counter assigned'
     },
     {
       header: 'Status',
@@ -191,19 +196,19 @@ export default function UsersPage() {
       <div className="stats-grid">
         <Card condensed>
           <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--color-text-secondary)', fontWeight: 600 }}>Total Accounts</span>
-          <h3 style={{ fontSize: '1.5rem', fontWeight: 800, marginTop: '0.25rem' }}>{users.length}</h3>
+          <h3 style={{ fontSize: '1.5rem', fontWeight: 800, marginTop: '0.25rem' }}>{pagination.total}</h3>
         </Card>
         <Card condensed>
           <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--color-text-secondary)', fontWeight: 600 }}>Staff</span>
-          <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--color-warning)', marginTop: '0.25rem' }}>{users.filter(u => u.role === 'STAFF').length}</h3>
+          <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--color-warning)', marginTop: '0.25rem' }}>{roleCounts.STAFF || 0}</h3>
         </Card>
         <Card condensed>
           <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--color-text-secondary)', fontWeight: 600 }}>Admins</span>
-          <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--color-error)', marginTop: '0.25rem' }}>{users.filter(u => u.role === 'ADMIN').length}</h3>
+          <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--color-error)', marginTop: '0.25rem' }}>{roleCounts.ADMIN || 0}</h3>
         </Card>
         <Card condensed>
           <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--color-text-secondary)', fontWeight: 600 }}>Patients</span>
-          <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--color-success)', marginTop: '0.25rem' }}>{users.filter(u => u.role === 'CUSTOMER').length}</h3>
+          <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--color-success)', marginTop: '0.25rem' }}>{roleCounts.CUSTOMER || 0}</h3>
         </Card>
       </div>
 
@@ -214,7 +219,7 @@ export default function UsersPage() {
             <input type="text" placeholder="Search by name, email or phone..." value={search} onChange={(e) => setSearch(e.target.value)} style={{ width: '100%', ...selectStyle }} />
           </div>
           <div>
-            <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} style={selectStyle}>
+            <select value={roleFilter} onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }} style={selectStyle}>
               <option value="">All Roles</option>
               <option value="ADMIN">Administrators</option>
               <option value="STAFF">Hospital Staff</option>
@@ -236,6 +241,7 @@ export default function UsersPage() {
         ) : (
           <Table columns={columns} data={users} />
         )}
+        <PaginationControls page={page} pages={pagination.pages} total={pagination.total} limit={pagination.limit} onPageChange={setPage} />
       </Card>
 
       {/* Add User Modal */}
@@ -255,13 +261,9 @@ export default function UsersPage() {
               <option value="ADMIN">Administrator</option>
             </select>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-            <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-secondary)' }}>Department (for staff)</label>
-            <select {...register('branchId')} style={selectStyle}>
-              <option value="">— None —</option>
-              {branches.map(b => (<option key={b.id} value={b.id}>{b.name}</option>))}
-            </select>
-          </div>
+          <p style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
+            Assign staff to a department through its counter in Counter Management.
+          </p>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '1rem' }}>
             <Button type="button" variant="ghost" onClick={() => setIsAddModalOpen(false)}>Cancel</Button>
             <Button type="submit" variant="primary" disabled={submitting}>
@@ -287,13 +289,11 @@ export default function UsersPage() {
               <option value="ADMIN">Administrator</option>
             </select>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-            <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-secondary)' }}>Department</label>
-            <select {...register('branchId')} style={selectStyle}>
-              <option value="">— None —</option>
-              {branches.map(b => (<option key={b.id} value={b.id}>{b.name}</option>))}
-            </select>
-          </div>
+          {selectedUser?.role === 'STAFF' && (
+            <p style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
+              Counter assignment is managed from Counter Management.
+            </p>
+          )}
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '1rem' }}>
             <Button type="button" variant="ghost" onClick={() => { setIsEditModalOpen(false); setSelectedUser(null); }}>Cancel</Button>
             <Button type="submit" variant="primary" disabled={submitting}>

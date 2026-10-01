@@ -56,8 +56,8 @@ export const getCustomerActiveTickets = async () => {
   return response.data;
 };
 
-export const getCustomerHistoryTickets = async () => {
-  const response = await api.get('/tickets/my-history');
+export const getCustomerHistoryTickets = async (page = 1, limit = 20, filters = {}) => {
+  const response = await api.get('/tickets/my-history', { params: { page, limit, ...filters } });
   return response.data;
 };
 

@@ -31,10 +31,10 @@
 .btn-primary {
   background: var(--gradient-primary);
   color: var(--color-text-inverse);
-  box-shadow: 0 2px 6px hsla(226, 68%, 38%, 0.25);
+  box-shadow: 0 2px 6px hsla(177, 54%, 29%, 0.25);
 }
 .btn-primary:hover {
-  box-shadow: 0 4px 12px hsla(226, 68%, 38%, 0.35);
+  box-shadow: 0 4px 12px hsla(177, 54%, 29%, 0.35);
   transform: translateY(-1px);
 }
 
@@ -51,10 +51,10 @@
 .btn-accent {
   background: var(--gradient-accent);
   color: var(--color-text-inverse);
-  box-shadow: 0 2px 6px hsla(172, 66%, 36%, 0.25);
+  box-shadow: 0 2px 6px hsla(17, 72%, 48%, 0.2);
 }
 .btn-accent:hover {
-  box-shadow: 0 4px 12px hsla(172, 66%, 36%, 0.35);
+  box-shadow: 0 4px 12px hsla(17, 72%, 48%, 0.3);
   transform: translateY(-1px);
 }
 
@@ -150,7 +150,7 @@
 .card {
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
+  border-radius: 8px;
   padding: var(--space-6);
   box-shadow: var(--shadow-xs);
   transition: box-shadow var(--transition-base), transform var(--transition-base);

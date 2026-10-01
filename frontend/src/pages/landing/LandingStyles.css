@@ -40,7 +40,7 @@
 }
 
 .landing-nav--scrolled {
-  background: hsla(222, 47%, 11%, 0.92);
+  background: hsla(184, 39%, 14%, 0.95);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid hsla(0, 0%, 100%, 0.06);
@@ -49,6 +49,7 @@
 }
 
 .landing-nav-inner {
+  position: relative;
   max-width: 1200px;
   margin: 0 auto;
   display: flex;
@@ -156,7 +157,7 @@
 /* ── Hero Section ────────────────────────────────────── */
 .landing-hero {
   position: relative;
-  min-height: 100vh;
+  min-height: min(760px, 91vh);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -167,19 +168,13 @@
 .landing-hero-bg {
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(ellipse at 20% 50%, hsla(226, 68%, 38%, 0.15) 0%, transparent 60%),
-    radial-gradient(ellipse at 80% 20%, hsla(172, 66%, 36%, 0.1) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 80%, hsla(226, 68%, 22%, 0.2) 0%, transparent 50%);
+  background-image:
+    linear-gradient(90deg, rgba(11, 28, 34, 0.92) 0%, rgba(11, 28, 34, 0.78) 52%, rgba(11, 28, 34, 0.42) 100%),
+    linear-gradient(0deg, rgba(11, 28, 34, 0.36), rgba(11, 28, 34, 0.12)),
+    url('https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/A_patient_waiting_room_at_an_urgent_care_clinic_and_doctor%E2%80%99s_office_in_North_Carolina%2C_United_States_02.jpg/1920px-A_patient_waiting_room_at_an_urgent_care_clinic_and_doctor%E2%80%99s_office_in_North_Carolina%2C_United_States_02.jpg');
+  background-size: cover;
+  background-position: center 42%;
   pointer-events: none;
-}
-
-.landing-hero-bg::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0v60M0 30h60' stroke='rgba(255,255,255,0.02)' stroke-width='1'/%3E%3C/svg%3E");
-  opacity: 0.3;
 }
 
 .landing-hero-content {
@@ -208,11 +203,11 @@
 }
 
 .landing-hero-title {
-  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-size: 3.5rem;
   font-weight: var(--font-weight-extrabold);
   color: #fff;
   line-height: 1.1;
-  letter-spacing: -1px;
+  letter-spacing: 0;
   margin-bottom: var(--space-5);
 }
 
@@ -353,7 +348,7 @@
   font-size: var(--font-size-3xl);
   font-weight: var(--font-weight-extrabold);
   color: var(--color-text);
-  letter-spacing: -0.5px;
+  letter-spacing: 0;
   margin-bottom: var(--space-3);
 }
 
@@ -389,7 +384,7 @@
 .landing-feature-card {
   background: var(--color-surface);
   border: 1px solid var(--color-border-light);
-  border-radius: var(--radius-xl);
+  border-radius: 8px;
   padding: var(--space-7);
   transition: all var(--transition-base);
   position: relative;
@@ -529,56 +524,6 @@
   border-left: 3px solid var(--color-accent);
 }
 
-/* ── Stats Section ───────────────────────────────────── */
-.landing-stats-section {
-  max-width: 100%;
-  background: var(--gradient-primary-dark);
-  padding: var(--space-16) var(--space-8);
-}
-
-.landing-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--space-8);
-  max-width: 1000px;
-  margin: 0 auto;
-}
-
-.landing-stat-card {
-  text-align: center;
-  padding: var(--space-6);
-}
-
-.landing-stat-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: var(--radius-xl);
-  background: hsla(0, 0%, 100%, 0.1);
-  color: var(--color-accent-light);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto var(--space-4);
-  backdrop-filter: blur(8px);
-  border: 1px solid hsla(0, 0%, 100%, 0.1);
-}
-
-.landing-stat-value {
-  display: block;
-  font-size: var(--font-size-4xl);
-  font-weight: var(--font-weight-extrabold);
-  color: #fff;
-  letter-spacing: -1px;
-  margin-bottom: var(--space-2);
-}
-
-.landing-stat-label {
-  font-size: var(--font-size-sm);
-  color: hsla(0, 0%, 100%, 0.6);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
 /* ── CTA Section ─────────────────────────────────────── */
 .landing-cta {
   max-width: 100%;
@@ -597,7 +542,7 @@
   font-weight: var(--font-weight-extrabold);
   color: var(--color-text);
   margin-bottom: var(--space-4);
-  letter-spacing: -0.5px;
+  letter-spacing: 0;
 }
 
 .landing-cta-desc {
@@ -758,12 +703,35 @@
     display: none;
   }
 
+  .landing-nav-links--open {
+    position: absolute;
+    top: calc(100% + 0.75rem);
+    left: 0;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-1);
+    padding: var(--space-3);
+    border: 1px solid hsla(0, 0%, 100%, 0.12);
+    border-radius: 8px;
+    background: hsl(184, 39%, 14%);
+    box-shadow: var(--shadow-xl);
+  }
+
+  .landing-nav-links--open .landing-nav-link,
+  .landing-nav-links--open .landing-nav-btn {
+    width: 100%;
+    justify-content: flex-start;
+    margin-left: 0;
+  }
+
   .landing-mobile-menu {
     display: flex;
   }
 
   .landing-hero-title {
-    font-size: var(--font-size-3xl);
+    font-size: 2.5rem;
   }
 
   .landing-hero-actions {
@@ -774,16 +742,6 @@
   .landing-hero-btn {
     width: 100%;
     justify-content: center;
-  }
-
-  .landing-hero-stats {
-    flex-direction: column;
-    gap: var(--space-4);
-  }
-
-  .landing-hero-stat-divider {
-    width: 60px;
-    height: 1px;
   }
 
   .landing-section {
@@ -803,15 +761,6 @@
     display: none;
   }
 
-  .landing-stats-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-4);
-  }
-
-  .landing-stat-value {
-    font-size: var(--font-size-3xl);
-  }
-
   .landing-footer-grid {
     grid-template-columns: 1fr;
     gap: var(--space-8);
@@ -823,9 +772,4 @@
   }
 }
 
-@media (max-width: 480px) {
-  .landing-stats-grid {
-    grid-template-columns: 1fr;
-  }
-}
 

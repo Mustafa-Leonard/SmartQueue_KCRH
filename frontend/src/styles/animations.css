@@ -19,9 +19,9 @@
 }
 
 @keyframes pulseGlow {
-  0% { box-shadow: 0 0 0 0 hsla(172, 66%, 36%, 0.4); }
-  70% { box-shadow: 0 0 0 15px hsla(172, 66%, 36%, 0); }
-  100% { box-shadow: 0 0 0 0 hsla(172, 66%, 36%, 0); }
+  0% { box-shadow: 0 0 0 0 hsla(17, 72%, 48%, 0.4); }
+  70% { box-shadow: 0 0 0 15px hsla(17, 72%, 48%, 0); }
+  100% { box-shadow: 0 0 0 0 hsla(17, 72%, 48%, 0); }
 }
 
 @keyframes pulse-dot {
@@ -74,9 +74,9 @@
 }
 
 @keyframes flash-border-glow {
-  0% { box-shadow: 0 0 0 0 hsla(172, 66%, 36%, 0.6); }
-  50% { box-shadow: 0 0 40px 10px hsla(172, 66%, 36%, 0.3); }
-  100% { box-shadow: 0 0 0 0 hsla(172, 66%, 36%, 0.6); }
+  0% { box-shadow: 0 0 0 0 hsla(17, 72%, 48%, 0.6); }
+  50% { box-shadow: 0 0 40px 10px hsla(17, 72%, 48%, 0.3); }
+  100% { box-shadow: 0 0 0 0 hsla(17, 72%, 48%, 0.6); }
 }
 
 /* Marquee scrolling for footer */
@@ -102,7 +102,7 @@
 /* Card glow for Now Serving */
 @keyframes card-glow {
   0% { border-color: rgba(255,255,255,0.1); }
-  50% { border-color: hsla(172, 66%, 36%, 0.4); }
+  50% { border-color: hsla(17, 72%, 48%, 0.4); }
   100% { border-color: rgba(255,255,255,0.1); }
 }
 

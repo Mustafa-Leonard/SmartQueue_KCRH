@@ -10,8 +10,9 @@ import {
   CheckCircleIcon, AlertIcon, CalendarIcon, 
   MegaphoneIcon, InfoIcon, ClockIcon 
 } from '../../components/common/Icons.jsx';
-import { extractArray } from '../../utils/apiUtils.js';
+import { extractArray, extractData } from '../../utils/apiUtils.js';
 import { formatDateTime, formatDate } from '../../utils/formatters.js';
+import PaginationControls from '../../components/common/PaginationControls.jsx';
 
 const NOTIFICATION_CATEGORIES = {
   queue: { label: 'Queue Updates', icon: <ClockIcon size={14} />, color: 'var(--color-primary)' },
@@ -30,30 +31,40 @@ function categorizeNotification(n) {
   return 'system';
 }
 
+const isNotificationRead = (notification) => notification.status === 'READ' || Boolean(notification.readAt);
+
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [markingAll, setMarkingAll] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, pages: 1 });
+  const [unreadTotal, setUnreadTotal] = useState(0);
 
   const loadNotifications = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await notificationApi.getNotifications({});
-      setNotifications(extractArray(data, 'notifications'));
+      const data = await notificationApi.getNotifications({ page, limit: 20 });
+      const payload = extractData(data);
+      setNotifications(payload?.notifications || extractArray(data, 'notifications'));
+      setPagination(payload?.pagination || { page: 1, limit: 20, total: 0, pages: 1 });
+      setUnreadTotal(payload?.pagination?.unreadCount ?? 0);
     } catch (err) {
       toast.error('Failed to load notifications');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [page]);
 
   useEffect(() => { loadNotifications(); }, [loadNotifications]);
 
   const handleMarkRead = async (id) => {
     try {
       await notificationApi.markAsRead(id);
-      setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+      const wasUnread = notifications.some(notification => notification.id === id && !isNotificationRead(notification));
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, status: 'READ', readAt: new Date().toISOString() } : n));
+      if (wasUnread) setUnreadTotal(count => Math.max(0, count - 1));
       toast.success('Marked as read');
     } catch (err) {
       toast.error('Failed to update');
@@ -64,7 +75,7 @@ export default function NotificationsPage() {
     setMarkingAll(true);
     try {
       await notificationApi.markAllAsRead();
-      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+      await loadNotifications();
       toast.success('All notifications marked as read');
     } catch (err) {
       toast.error('Failed to mark all as read');
@@ -100,10 +111,10 @@ export default function NotificationsPage() {
     return groups;
   })();
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const unreadCount = unreadTotal;
   const categoriesWithCount = {};
   Object.keys(NOTIFICATION_CATEGORIES).forEach(key => {
-    categoriesWithCount[key] = notifications.filter(n => !n.isRead && categorizeNotification(n) === key).length;
+    categoriesWithCount[key] = notifications.filter(n => !isNotificationRead(n) && categorizeNotification(n) === key).length;
   });
 
   const statusVariants = { SENT: 'success', DELIVERED: 'success', SIMULATED: 'info', FAILED: 'error' };
@@ -119,7 +130,7 @@ export default function NotificationsPage() {
         style={{ 
           padding: '1rem',
           borderLeft: !n.isRead ? `4px solid ${catInfo?.color || 'var(--color-primary)'}` : 'none',
-          opacity: n.isRead ? 0.7 : 1
+          opacity: isNotificationRead(n) ? 0.7 : 1
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
@@ -129,7 +140,7 @@ export default function NotificationsPage() {
               <span style={{ fontWeight: 600, fontSize: '0.85rem', color: catInfo?.color }}>{catInfo?.label}</span>
               {n.type === 'SMS' && <PhoneIcon size={12} color="var(--color-text-muted)" />}
               {n.type === 'EMAIL' && <MailIcon size={12} color="var(--color-text-muted)" />}
-              {!n.isRead && <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'var(--color-primary)', display: 'inline-block' }} />}
+              {!isNotificationRead(n) && <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'var(--color-primary)', display: 'inline-block' }} />}
             </div>
             {n.subject && <p style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.25rem' }}>{n.subject}</p>}
             <p style={{ fontSize: '0.85rem', color: 'var(--color-text)', lineHeight: 1.5 }}>{n.message}</p>
@@ -140,7 +151,7 @@ export default function NotificationsPage() {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-end' }}>
             <Badge variant={statusVariants[n.status]} size="sm">{n.status}</Badge>
-            {!n.isRead && (
+            {!isNotificationRead(n) && (
               <Button variant="ghost" size="sm" onClick={() => handleMarkRead(n.id)} style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem' }}>
                 Mark Read
               </Button>
@@ -236,6 +247,7 @@ export default function NotificationsPage() {
           )}
         </div>
       )}
+      <PaginationControls page={page} pages={pagination.pages} total={pagination.total} limit={pagination.limit} onPageChange={setPage} />
     </div>
   );
 }

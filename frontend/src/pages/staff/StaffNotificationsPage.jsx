@@ -8,16 +8,21 @@ import * as notificationApi from '../../api/notificationApi.js';
 import { RefreshIcon, BellIcon, PhoneIcon, MailIcon } from '../../components/common/Icons.jsx';
 import { extractArray } from '../../utils/apiUtils.js';
 import { formatDateTime } from '../../utils/formatters.js';
+import PaginationControls from '../../components/common/PaginationControls.jsx';
 
 export default function StaffNotificationsPage() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, pages: 1 });
 
   const loadNotifications = async () => {
     setLoading(true);
     try {
-      const data = await notificationApi.getNotifications({});
-      setNotifications(extractArray(data, 'notifications'));
+      const data = await notificationApi.getNotifications({ page, limit: 20 });
+      const payload = data?.data || {};
+      setNotifications(payload.notifications || extractArray(data, 'notifications'));
+      setPagination(payload.pagination || { page: 1, limit: 20, total: 0, pages: 1 });
     } catch (err) {
       toast.error('Failed to load notifications');
     } finally {
@@ -25,7 +30,7 @@ export default function StaffNotificationsPage() {
     }
   };
 
-  useEffect(() => { loadNotifications(); }, []);
+  useEffect(() => { loadNotifications(); }, [page]);
 
   const statusVariants = { SENT: 'success', DELIVERED: 'success', SIMULATED: 'info', FAILED: 'error' };
 
@@ -71,6 +76,7 @@ export default function StaffNotificationsPage() {
           ))}
         </div>
       )}
+      <PaginationControls page={page} pages={pagination.pages} total={pagination.total} limit={pagination.limit} onPageChange={setPage} />
     </div>
   );
 }

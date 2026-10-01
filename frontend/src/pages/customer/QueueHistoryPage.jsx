@@ -7,24 +7,33 @@ import Button from '../../components/common/Button.jsx';
 import * as ticketApi from '../../api/ticketApi.js';
 import { 
   RefreshIcon, HistoryIcon, TicketIcon, ClockIcon, 
-  SearchIcon, DownloadIcon, StarIcon, FilterIcon 
+  SearchIcon, DownloadIcon, StarIcon, FilterIcon, BranchIcon
 } from '../../components/common/Icons.jsx';
 import { extractData } from '../../utils/apiUtils.js';
 import { formatDate, formatDateTime } from '../../utils/formatters.js';
+import PaginationControls from '../../components/common/PaginationControls.jsx';
 
 export default function QueueHistoryPage() {
   const [historyTickets, setHistoryTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [appliedSearch, setAppliedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [dateFilter, setDateFilter] = useState('');
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, pages: 1 });
 
   const loadHistory = async () => {
     setLoading(true);
     try {
-      const res = await ticketApi.getCustomerHistoryTickets();
+      const res = await ticketApi.getCustomerHistoryTickets(page, 20, {
+        search: appliedSearch || undefined,
+        status: statusFilter || undefined,
+        date: dateFilter || undefined
+      });
       const payload = extractData(res);
       setHistoryTickets(payload?.tickets || []);
+      setPagination(payload?.pagination || { page: 1, limit: 20, total: 0, pages: 1 });
     } catch (err) {
       toast.error('Failed to load history');
     } finally {
@@ -32,19 +41,18 @@ export default function QueueHistoryPage() {
     }
   };
 
-  useEffect(() => { loadHistory(); }, []);
+  useEffect(() => { loadHistory(); }, [page, appliedSearch, statusFilter, dateFilter]);
 
   const statusVariants = { COMPLETED: 'success', SKIPPED: 'default', NO_SHOW: 'error', TRANSFERRED: 'info' };
 
-  const filteredTickets = historyTickets.filter(t => {
-    const matchesSearch = !searchQuery || 
-      t.ticketNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.service?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.queue?.branch?.name?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = !statusFilter || t.status === statusFilter;
-    const matchesDate = !dateFilter || formatDate(t.createdAt).startsWith(dateFilter);
-    return matchesSearch && matchesStatus && matchesDate;
-  });
+  const filteredTickets = historyTickets;
+
+  const handleHistorySearch = (event) => {
+    event.preventDefault();
+    setPage(1);
+    if (page === 1 && appliedSearch === searchQuery) loadHistory();
+    else setAppliedSearch(searchQuery);
+  };
 
   const handleDownloadReceipt = (ticket) => {
     const receiptText = `
@@ -95,25 +103,28 @@ export default function QueueHistoryPage() {
       <div className="stats-grid">
         <Card condensed>
           <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--color-text-secondary)', fontWeight: 600 }}>Total Visits</span>
-          <h3 style={{ fontSize: '1.5rem', fontWeight: 800, marginTop: '0.25rem' }}>{historyTickets.length}</h3>
+          <h3 style={{ fontSize: '1.5rem', fontWeight: 800, marginTop: '0.25rem' }}>{pagination.total}</h3>
         </Card>
         <Card condensed>
-          <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--color-text-secondary)', fontWeight: 600 }}>Completed</span>
+          <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--color-text-secondary)', fontWeight: 600 }}>Completed on Page</span>
           <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--color-success)', marginTop: '0.25rem' }}>
             {historyTickets.filter(t => t.status === 'COMPLETED').length}
           </h3>
         </Card>
         <Card condensed>
-          <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--color-text-secondary)', fontWeight: 600 }}>Avg Satisfaction</span>
+          <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--color-text-secondary)', fontWeight: 600 }}>Page Avg. Rating</span>
           <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--color-warning)', marginTop: '0.25rem' }}>
-            {historyTickets.filter(t => t.feedbacks?.length > 0).length > 0 ? '★ 4.2' : '—'}
+            {(() => {
+              const ratings = historyTickets.flatMap(ticket => ticket.feedbacks || []).map(feedback => Number(feedback.rating)).filter(Number.isFinite);
+              return ratings.length ? `${(ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length).toFixed(1)} / 5` : '—';
+            })()}
           </h3>
         </Card>
       </div>
 
       {/* Filters */}
       <Card style={{ padding: '1rem', marginBottom: '1.5rem' }}>
-        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+        <form onSubmit={handleHistorySearch} style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
           <div style={{ flex: 1, minWidth: '200px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <SearchIcon size={16} color="var(--color-text-muted)" />
             <input
@@ -124,15 +135,16 @@ export default function QueueHistoryPage() {
               style={{ ...selectStyle, width: '100%', border: 'none', outline: 'none' }}
             />
           </div>
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={selectStyle}>
+          <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }} style={selectStyle}>
             <option value="">All Statuses</option>
             <option value="COMPLETED">Completed</option>
             <option value="SKIPPED">Skipped</option>
             <option value="NO_SHOW">No Show</option>
             <option value="TRANSFERRED">Transferred</option>
           </select>
-          <input type="date" value={dateFilter} onChange={(e) => setDateFilter(e.target.value)} style={selectStyle} />
-        </div>
+          <input type="date" value={dateFilter} onChange={(e) => { setDateFilter(e.target.value); setPage(1); }} style={selectStyle} />
+          <Button type="submit" variant="secondary" icon={<SearchIcon size={14} />}>Search</Button>
+        </form>
       </Card>
 
       {loading ? (
@@ -172,7 +184,7 @@ export default function QueueHistoryPage() {
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
                         <ClockIcon size={12} /> {formatDateTime(t.createdAt)}
                       </span>
-                      {t.queue?.branch?.name && <span>🏥 {t.queue.branch.name}</span>}
+                      {t.queue?.branch?.name && <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}><BranchIcon size={12} /> {t.queue.branch.name}</span>}
                       {t.counter && <span>Desk: {t.counter.name}</span>}
                     </div>
                     {/* Serving duration placeholder */}
@@ -206,6 +218,7 @@ export default function QueueHistoryPage() {
           ))}
         </div>
       )}
+      <PaginationControls page={page} pages={pagination.pages} total={pagination.total} limit={pagination.limit} onPageChange={setPage} />
     </div>
   );
 }

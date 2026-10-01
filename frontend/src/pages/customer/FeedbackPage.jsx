@@ -12,20 +12,21 @@ import { extractArray, extractData } from '../../utils/apiUtils.js';
 import { 
   StarIcon, SendIcon, HistoryIcon, AlertIcon, 
   MessageIcon, CheckCircleIcon, LightbulbIcon,
-  ThumbsUpIcon, ThumbsDownIcon
+  ThumbsUpIcon, ThumbsDownIcon, ClockIcon, UserIcon, BranchIcon,
+  MegaphoneIcon, WalkIcon, ServiceIcon
 } from '../../components/common/Icons.jsx';
 import { formatDateTime } from '../../utils/formatters.js';
 
 const FEEDBACK_CATEGORIES = [
-  { value: 'GENERAL', label: 'General', icon: '📋' },
-  { value: 'SERVICE', label: 'Service Quality', icon: '💼' },
-  { value: 'WAIT_TIME', label: 'Wait Time', icon: '⏱️' },
-  { value: 'STAFF', label: 'Staff Attitude', icon: '👨‍⚕️' },
-  { value: 'FACILITY', label: 'Facility & Cleanliness', icon: '🏥' },
-  { value: 'COMMUNICATION', label: 'Communication', icon: '📢' },
-  { value: 'ACCESSIBILITY', label: 'Accessibility', icon: '♿' },
-  { value: 'COMPLAINT', label: 'Complaint', icon: '⚠️' },
-  { value: 'SUGGESTION', label: 'Suggestion', icon: '💡' },
+  { value: 'GENERAL', label: 'General', icon: MessageIcon },
+  { value: 'SERVICE', label: 'Service Quality', icon: ServiceIcon },
+  { value: 'WAIT_TIME', label: 'Wait Time', icon: ClockIcon },
+  { value: 'STAFF', label: 'Staff Attitude', icon: UserIcon },
+  { value: 'FACILITY', label: 'Facility & Cleanliness', icon: BranchIcon },
+  { value: 'COMMUNICATION', label: 'Communication', icon: MegaphoneIcon },
+  { value: 'ACCESSIBILITY', label: 'Accessibility', icon: WalkIcon },
+  { value: 'COMPLAINT', label: 'Complaint', icon: AlertIcon },
+  { value: 'SUGGESTION', label: 'Suggestion', icon: LightbulbIcon },
 ];
 
 export default function FeedbackPage() {
@@ -38,7 +39,9 @@ export default function FeedbackPage() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [feedbackType, setFeedbackType] = useState('feedback'); // 'feedback' | 'suggestion' | 'complaint'
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm();
+  const { register, handleSubmit, reset, watch, formState: { errors } } = useForm();
+  const selectedCategory = FEEDBACK_CATEGORIES.find(category => category.value === (watch('category') || 'GENERAL')) || FEEDBACK_CATEGORIES[0];
+  const SelectedCategoryIcon = selectedCategory.icon;
 
   const loadData = async () => {
     setLoading(true);
@@ -156,11 +159,13 @@ export default function FeedbackPage() {
                         onMouseLeave={() => setHoverRating(0)}
                         style={{
                           background: 'none', border: 'none', cursor: 'pointer',
-                          fontSize: '2rem', color: star <= (hoverRating || rating) ? '#f59e0b' : 'var(--color-border)',
+                          color: star <= (hoverRating || rating) ? '#f59e0b' : 'var(--color-border)',
                           transition: 'color 0.15s', padding: '0 2px'
                         }}
+                        aria-label={`Rate ${star} out of 5 stars`}
+                        aria-pressed={rating === star}
                       >
-                        ★
+                        <StarIcon size={28} color={star <= (hoverRating || rating) ? '#f59e0b' : 'var(--color-border)'} style={{ fill: star <= (hoverRating || rating) ? '#f59e0b' : 'transparent' }} />
                       </button>
                     ))}
                   </div>
@@ -169,19 +174,20 @@ export default function FeedbackPage() {
 
               {/* Category */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-secondary)' }}>
+                <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <SelectedCategoryIcon size={14} />
                   {feedbackType === 'suggestion' ? 'Suggestion Type' : feedbackType === 'complaint' ? 'Complaint Category' : 'Category'}
                 </label>
                 <select {...register('category')} style={selectStyle}>
                   {(feedbackType === 'suggestion' 
-                    ? [{ value: 'SUGGESTION', label: 'General Suggestion', icon: '' }]
+                    ? [{ value: 'SUGGESTION', label: 'General Suggestion' }]
                     : FEEDBACK_CATEGORIES.filter(c => 
                         feedbackType === 'complaint' 
                           ? ['SERVICE', 'WAIT_TIME', 'STAFF', 'FACILITY', 'COMMUNICATION', 'ACCESSIBILITY', 'COMPLAINT'].includes(c.value)
                           : true
                       )
                   ).map(c => (
-                    <option key={c.value} value={c.value}>{c.icon} {c.label}</option>
+                    <option key={c.value} value={c.value}>{c.label}</option>
                   ))}
                 </select>
               </div>
@@ -236,7 +242,7 @@ export default function FeedbackPage() {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '0.15rem', marginBottom: '0.75rem' }}>
                   {[1, 2, 3, 4, 5].map(star => (
-                    <span key={star} style={{ fontSize: '1.5rem', color: star <= Math.round(parseFloat(avgRating)) ? '#f59e0b' : 'var(--color-border)' }}>★</span>
+                    <StarIcon key={star} size={20} color={star <= Math.round(parseFloat(avgRating)) ? '#f59e0b' : 'var(--color-border)'} style={{ fill: star <= Math.round(parseFloat(avgRating)) ? '#f59e0b' : 'transparent' }} />
                   ))}
                 </div>
                 <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
@@ -249,7 +255,7 @@ export default function FeedbackPage() {
                     const pct = myFeedback.length > 0 ? (count / myFeedback.length) * 100 : 0;
                     return (
                       <div key={star} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem' }}>
-                        <span style={{ width: '2rem', textAlign: 'right' }}>{star}★</span>
+                        <span style={{ width: '2rem', display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.2rem' }}>{star}<StarIcon size={12} /></span>
                         <div style={{ flex: 1, height: '8px', backgroundColor: 'var(--color-border)', borderRadius: '99px', overflow: 'hidden' }}>
                           <div style={{ width: `${pct}%`, height: '100%', backgroundColor: '#f59e0b', borderRadius: '99px' }} />
                         </div>
@@ -281,7 +287,7 @@ export default function FeedbackPage() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
                       <div style={{ display: 'flex', gap: '0.15rem' }}>
                         {[1, 2, 3, 4, 5].map(star => (
-                          <span key={star} style={{ color: star <= f.rating ? '#f59e0b' : 'var(--color-border)', fontSize: '1rem' }}>★</span>
+                          <StarIcon key={star} size={14} color={star <= f.rating ? '#f59e0b' : 'var(--color-border)'} style={{ fill: star <= f.rating ? '#f59e0b' : 'transparent' }} />
                         ))}
                       </div>
                       <Badge variant={
