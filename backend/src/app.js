@@ -35,7 +35,7 @@ app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
     if (config.NODE_ENV === 'development') return callback(null, true);
-    const allowed = [config.FRONTEND_URL, 'http://localhost:5173'];
+    const allowed = [config.FRONTEND_URL];
     if (allowed.includes(origin)) return callback(null, true);
     return callback(new Error('Not allowed by CORS'));
   },
@@ -58,8 +58,7 @@ app.use('/api', (req, res, next) => {
       logApiRequest({
         userId: req.user?.id,
         method: req.method,
-        path: req.originalUrl,
-        query: req.query,
+        path: req.route?.path || 'unmatched',
         statusCode: res.statusCode,
         duration,
         ipAddress: req.ip,

@@ -5,8 +5,8 @@ import asyncHandler from '../../utils/asyncHandler.js';
 export const getNotificationsLog = asyncHandler(async (req, res) => {
   const { status, type, page = 1, limit = 20 } = req.query;
 
-  const pageNum = parseInt(page, 10);
-  const limitNum = parseInt(limit, 10);
+  const pageNum = Math.max(1, parseInt(page, 10) || 1);
+  const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
   const skip = (pageNum - 1) * limitNum;
 
   const filter = {};
@@ -21,8 +21,9 @@ export const getNotificationsLog = asyncHandler(async (req, res) => {
   if (req.user.role !== 'ADMIN') {
     filter.userId = req.user.id;
   }
+  const unreadFilter = { ...filter, status: { not: 'READ' } };
 
-  const [notifications, total] = await Promise.all([
+  const [notifications, total, unreadCount] = await Promise.all([
     prisma.notification.findMany({
       where: filter,
       orderBy: { createdAt: 'desc' },
@@ -34,7 +35,8 @@ export const getNotificationsLog = asyncHandler(async (req, res) => {
         }
       }
     }),
-    prisma.notification.count({ where: filter })
+    prisma.notification.count({ where: filter }),
+    prisma.notification.count({ where: unreadFilter })
   ]);
 
   return successResponse(res, 'Notifications log retrieved successfully', {
@@ -43,6 +45,7 @@ export const getNotificationsLog = asyncHandler(async (req, res) => {
       page: pageNum,
       limit: limitNum,
       total,
+      unreadCount,
       pages: Math.ceil(total / limitNum)
     }
   });

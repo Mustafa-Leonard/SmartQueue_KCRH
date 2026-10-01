@@ -7,11 +7,25 @@ const __dirname = path.dirname(__filename);
 
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
+const NODE_ENV = process.env.NODE_ENV || 'development';
+const defaultDatabaseUrl = 'file:./dev.db';
+const databaseUrl = process.env.DATABASE_URL || (NODE_ENV === 'development' ? defaultDatabaseUrl : undefined);
+const frontendUrl = process.env.FRONTEND_URL || (NODE_ENV === 'development' ? 'http://localhost:5173' : undefined);
+
+if (!databaseUrl) {
+  throw new Error('DATABASE_URL must be set outside development. Copy backend/.env.example to backend/.env and configure the database URL.');
+}
+if (!frontendUrl) {
+  throw new Error('FRONTEND_URL must be set outside development.');
+}
+
+process.env.DATABASE_URL = databaseUrl;
+
 const config = {
   PORT: process.env.PORT || 5000,
-  NODE_ENV: process.env.NODE_ENV || 'development',
-  DATABASE_URL: process.env.DATABASE_URL,
-  FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:5173',
+  NODE_ENV,
+  DATABASE_URL: databaseUrl,
+  FRONTEND_URL: frontendUrl,
   JWT: {
     ACCESS_SECRET: process.env.JWT_ACCESS_SECRET,
     REFRESH_SECRET: process.env.JWT_REFRESH_SECRET,
@@ -33,9 +47,19 @@ const config = {
   }
 };
 
-// Validate critical variables
-if (!config.DATABASE_URL) {
-  console.warn('WARNING: DATABASE_URL env variable is not set. Database connections will fail.');
+if (config.NODE_ENV === 'production') {
+  let frontendOrigin;
+  try {
+    frontendOrigin = new URL(config.FRONTEND_URL);
+  } catch {
+    throw new Error('FRONTEND_URL must be a valid HTTPS origin in production.');
+  }
+  if (frontendOrigin.protocol !== 'https:' || frontendOrigin.origin !== config.FRONTEND_URL.replace(/\/$/, '')) {
+    throw new Error('FRONTEND_URL must be a valid HTTPS origin in production.');
+  }
+  if (!config.NOTIFICATION_ENABLED || !config.SMTP.USER || !config.SMTP.PASS) {
+    throw new Error('NOTIFICATION_ENABLED, SMTP_USER, and SMTP_PASS must be configured in production for password recovery.');
+  }
 }
 
 // Ensure JWT secrets are provided in non-development environments

@@ -84,7 +84,7 @@ export const create = asyncHandler(async (req, res) => {
  * Update a user's profile.
  */
 export const update = asyncHandler(async (req, res) => {
-  const user = await userService.updateUser(req.params.id, req.body);
+  const user = await userService.updateUser(req.params.id, req.body, req.user?.id);
   return successResponse(res, 'User updated successfully', { user });
 });
 
@@ -93,7 +93,7 @@ export const update = asyncHandler(async (req, res) => {
  * Toggle user active status (activate / deactivate).
  */
 export const toggleActive = asyncHandler(async (req, res) => {
-  const user = await userService.toggleUserActive(req.params.id);
+  const user = await userService.toggleUserActive(req.params.id, req.user?.id);
   const msg = user.isActive ? 'User activated successfully' : 'User deactivated successfully';
   return successResponse(res, msg, { user });
 });
@@ -103,7 +103,7 @@ export const toggleActive = asyncHandler(async (req, res) => {
  * Soft-delete a user (sets isActive: false).
  */
 export const remove = asyncHandler(async (req, res) => {
-  const user = await userService.deleteUser(req.params.id);
+  const user = await userService.deleteUser(req.params.id, req.user?.id);
   return successResponse(res, 'User deleted successfully', { user });
 });
 

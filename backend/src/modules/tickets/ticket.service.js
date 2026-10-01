@@ -332,20 +332,57 @@ export const getActiveTicketsForCustomer = async (customerId) => {
   });
 };
 
-export const getHistoryTicketsForCustomer = async (customerId) => {
-  return prisma.ticket.findMany({
-    where: {
-      customerId,
-      status: { in: ['COMPLETED', 'SKIPPED', 'NO_SHOW', 'TRANSFERRED'] }
-    },
-    include: {
-      service: { select: { name: true } },
-      counter: { select: { name: true, number: true } },
-      queue: { include: { branch: { select: { name: true } } } }
-    },
-    orderBy: { createdAt: 'desc' },
-    take: 5
-  });
+export const getHistoryTicketsForCustomer = async (customerId, { page = 1, limit = 20, status, date, search } = {}) => {
+  const pageNumber = Math.max(1, Number(page) || 1);
+  const limitNumber = Math.min(100, Math.max(1, Number(limit) || 20));
+  const where = {
+    customerId,
+    status: { in: ['COMPLETED', 'SKIPPED', 'NO_SHOW', 'TRANSFERRED'] }
+  };
+
+  if (status && ['COMPLETED', 'SKIPPED', 'NO_SHOW', 'TRANSFERRED'].includes(status)) {
+    where.status = status;
+  }
+  if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    const start = new Date(`${date}T00:00:00.000Z`);
+    const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+    where.createdAt = { gte: start, lt: end };
+  }
+  if (search?.trim()) {
+    const term = search.trim();
+    const [services, branches] = await Promise.all([
+      prisma.service.findMany({ where: { name: { contains: term } }, select: { id: true } }),
+      prisma.branch.findMany({ where: { name: { contains: term } }, select: { id: true } })
+    ]);
+    const queues = branches.length
+      ? await prisma.queue.findMany({ where: { branchId: { in: branches.map(branch => branch.id) } }, select: { id: true } })
+      : [];
+    where.OR = [
+      { ticketNumber: { contains: term } },
+      { serviceId: { in: services.map(service => service.id) } },
+      { queueId: { in: queues.map(queue => queue.id) } }
+    ];
+  }
+  const [tickets, total] = await Promise.all([
+    prisma.ticket.findMany({
+      where,
+      include: {
+        service: { select: { name: true, estimatedTime: true } },
+        counter: { select: { name: true, number: true } },
+        queue: { include: { branch: { select: { name: true } } } },
+        feedbacks: { select: { rating: true } }
+      },
+      orderBy: { createdAt: 'desc' },
+      skip: (pageNumber - 1) * limitNumber,
+      take: limitNumber
+    }),
+    prisma.ticket.count({ where })
+  ]);
+
+  return {
+    tickets,
+    pagination: { page: pageNumber, limit: limitNumber, total, pages: Math.ceil(total / limitNumber) }
+  };
 };
 
 /**

@@ -28,7 +28,9 @@ export const createFeedback = async ({ rating, comment, category, ticketId, cust
 };
 
 export const getAllFeedback = async ({ category, isRead, page = 1, limit = 20 } = {}) => {
-  const skip = (Number(page) - 1) * Number(limit);
+  const pageNumber = Math.max(1, Number(page) || 1);
+  const limitNumber = Math.min(100, Math.max(1, Number(limit) || 20));
+  const skip = (pageNumber - 1) * limitNumber;
   const where = {};
 
   if (category) where.category = category;
@@ -50,7 +52,7 @@ export const getAllFeedback = async ({ category, isRead, page = 1, limit = 20 } 
       },
       orderBy: { createdAt: 'desc' },
       skip,
-      take: Number(limit)
+      take: limitNumber
     }),
     prisma.feedback.count({ where })
   ]);
@@ -58,9 +60,9 @@ export const getAllFeedback = async ({ category, isRead, page = 1, limit = 20 } 
   return {
     feedbacks,
     total,
-    page: Number(page),
-    limit: Number(limit),
-    pages: Math.ceil(total / Number(limit))
+    page: pageNumber,
+    limit: limitNumber,
+    pages: Math.ceil(total / limitNumber)
   };
 };
 
@@ -94,22 +96,23 @@ export const markAsRead = async (id) => {
 };
 
 export const getFeedbackStats = async () => {
-  const allFeedback = await prisma.feedback.findMany({
-    select: { rating: true }
-  });
+  const [ratingSummary, ratingGroups, unread] = await Promise.all([
+    prisma.feedback.aggregate({
+      _count: { _all: true },
+      _avg: { rating: true }
+    }),
+    prisma.feedback.groupBy({
+      by: ['rating'],
+      _count: { _all: true }
+    }),
+    prisma.feedback.count({ where: { isRead: false } })
+  ]);
 
-  const total = allFeedback.length;
-  const avgRating = total > 0
-    ? (allFeedback.reduce((sum, f) => sum + f.rating, 0) / total).toFixed(1)
-    : 0;
-
+  const total = ratingSummary._count._all;
+  const avgRating = ratingSummary._avg.rating ? Number(ratingSummary._avg.rating.toFixed(1)) : 0;
   const distribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
-  allFeedback.forEach(f => { distribution[f.rating]++; });
+  ratingGroups.forEach(({ rating, _count }) => { distribution[rating] = _count._all; });
 
-  return {
-    total,
-    avgRating: Number(avgRating),
-    distribution
-  };
+  return { total, unread, avgRating, distribution };
 };
 

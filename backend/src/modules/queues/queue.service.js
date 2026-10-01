@@ -11,9 +11,7 @@ export const getTodayQueue = async (branchId) => {
     },
     include: {
       tickets: {
-        where: {
-          status: { in: ['WAITING', 'CALLED', 'SERVING'] }
-        },
+        where: { status: { in: ['WAITING', 'CALLED', 'SERVING'] } },
         orderBy: { position: 'asc' },
         include: {
           service: { select: { name: true } },

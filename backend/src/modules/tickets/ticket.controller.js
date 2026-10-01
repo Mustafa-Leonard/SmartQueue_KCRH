@@ -92,8 +92,9 @@ export const getActiveTickets = asyncHandler(async (req, res) => {
 });
 
 export const getHistoryTickets = asyncHandler(async (req, res) => {
-  const tickets = await ticketService.getHistoryTicketsForCustomer(req.user.id);
-  return successResponse(res, 'Ticket history retrieved successfully', { tickets });
+  const { page = '1', limit = '20', status, date, search } = req.query;
+  const result = await ticketService.getHistoryTicketsForCustomer(req.user.id, { page, limit, status, date, search });
+  return successResponse(res, 'Ticket history retrieved successfully', result);
 });
 
 export const getBranchSummary = asyncHandler(async (req, res) => {

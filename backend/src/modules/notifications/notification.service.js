@@ -30,7 +30,6 @@ const transporter = nodemailer.createTransport({
 });
 
 export const sendSMS = async (phone, message, userId = null) => {
-  console.info(`[SMS Dispatch] To: ${phone} | Msg: "${message}"`);
   if (!config.NOTIFICATION_ENABLED) {
     return { status: 'DISABLED' };
   }
@@ -54,7 +53,7 @@ export const sendSMS = async (phone, message, userId = null) => {
       status = 'SIMULATED';
     }
   } catch (error) {
-    console.error(`SMS send failure to ${phone}:`, error.message);
+    console.error('SMS send failure:', error.message);
     status = 'FAILED';
   }
 
@@ -70,8 +69,7 @@ export const sendSMS = async (phone, message, userId = null) => {
   });
 };
 
-export const sendEmail = async (to, subject, htmlContent, userId = null) => {
-  console.info(`[Email Dispatch] To: ${to} | Sub: "${subject}"`);
+export const sendEmail = async (to, subject, htmlContent, userId = null, { sensitive = false } = {}) => {
   if (!config.NOTIFICATION_ENABLED) {
     return { status: 'DISABLED' };
   }
@@ -90,7 +88,7 @@ export const sendEmail = async (to, subject, htmlContent, userId = null) => {
       status = 'SIMULATED';
     }
   } catch (error) {
-    console.error(`Email send failure to ${to}:`, error.message);
+    console.error('Email send failure:', error.message);
     status = 'FAILED';
   }
 
@@ -100,11 +98,12 @@ export const sendEmail = async (to, subject, htmlContent, userId = null) => {
       type: 'EMAIL',
       recipient: to,
       subject,
-      message: htmlContent.substring(0, 500), // Log prefix/truncated message
+      message: sensitive ? 'Sensitive email content withheld from notification log.' : htmlContent.substring(0, 500),
       status,
       userId
     }
   });
+  return { status };
 };
 
 export const sendWelcomeMessage = async (user) => {
@@ -115,7 +114,7 @@ export const sendWelcomeMessage = async (user) => {
       <h2 style="color: #0b5a60;">Welcome to KCRH SmartQueue</h2>
       <p>Hello <strong>${user.name}</strong>,</p>
       <p>Thank you for registering with Kilifi County Referral Hospital SmartQueue system. Your account is active.</p>
-      <p>You can now book appointments, check-in to queues, and follow real-time queue states from your phone.</p>
+      <p>You can now request appointments, join queues, and follow ticket updates through the patient portal.</p>
       <hr style="border: 0; border-top: 1px solid #eee;" />
       <p style="font-size: 12px; color: #777;">Kilifi County Referral Hospital. Committed to quality service.</p>
     </div>

@@ -2,7 +2,7 @@ import { verifyAccessToken } from '../utils/jwt.js';
 import prisma from '../config/database.js';
 import { errorResponse } from '../utils/apiResponse.js';
 
-export const protect = async (req, res, next) => {
+const authenticateRequest = async (req, res, next, required) => {
   try {
     let token = null;
 
@@ -11,7 +11,7 @@ export const protect = async (req, res, next) => {
     }
 
     if (!token) {
-      return errorResponse(res, 'Authentication token required', [], 401);
+      return required ? errorResponse(res, 'Authentication token required', [], 401) : next();
     }
 
     const decoded = verifyAccessToken(token);
@@ -36,6 +36,9 @@ export const protect = async (req, res, next) => {
     return errorResponse(res, 'Invalid or expired token', [], 401);
   }
 };
+
+export const protect = (req, res, next) => authenticateRequest(req, res, next, true);
+export const optionalProtect = (req, res, next) => authenticateRequest(req, res, next, false);
 
 export const restrictTo = (...roles) => {
   return (req, res, next) => {

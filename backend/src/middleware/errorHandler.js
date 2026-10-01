@@ -2,7 +2,15 @@ import { errorResponse } from '../utils/apiResponse.js';
 import { ZodError } from 'zod';
 
 const errorHandler = (err, req, res, next) => {
-  console.error('SERVER ERROR:', err);
+  const production = process.env.NODE_ENV === 'production';
+  const errorContext = {
+    name: err.name,
+    code: err.code,
+    status: err.status,
+    method: req.method,
+    route: req.route?.path || 'unmatched'
+  };
+  console.error('SERVER ERROR:', production ? errorContext : err);
 
   // 1. Zod Validation Errors
   if (err instanceof ZodError) {
@@ -14,12 +22,12 @@ const errorHandler = (err, req, res, next) => {
   if (err.code && err.code.startsWith('P')) {
     if (err.code === 'P2002') {
       const target = err.meta?.target ? ` (${err.meta.target})` : '';
-      return errorResponse(res, `Database unique constraint violation${target}`, [], 409);
+      return errorResponse(res, production ? 'A record with these details already exists' : `Database unique constraint violation${target}`, [], 409);
     }
     if (err.code === 'P2025') {
-      return errorResponse(res, 'Record to update or delete not found', [], 404);
+      return errorResponse(res, production ? 'Requested record not found' : 'Record to update or delete not found', [], 404);
     }
-    return errorResponse(res, `Database operation failed: ${err.message}`, [], 400);
+    return errorResponse(res, production ? 'Database operation failed' : `Database operation failed: ${err.message}`, [], 400);
   }
 
   // 3. Unauthorized / JWT Errors
@@ -31,8 +39,9 @@ const errorHandler = (err, req, res, next) => {
   }
 
   // 4. Default Internal Server Error
-  const message = process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message;
-  return errorResponse(res, message, [], err.status || 500);
+  const statusCode = err.status || err.statusCode || 500;
+  const message = statusCode < 500 || !production ? err.message : 'Internal server error';
+  return errorResponse(res, message, [], statusCode);
 };
 
 export default errorHandler;

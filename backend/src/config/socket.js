@@ -12,7 +12,7 @@ export const initSocket = (server) => {
       origin: (origin, callback) => {
         if (!origin) return callback(null, true);
         if (config.NODE_ENV === 'development') return callback(null, true);
-        const allowed = [config.FRONTEND_URL, 'http://localhost:5173'];
+        const allowed = [config.FRONTEND_URL];
         if (allowed.includes(origin)) return callback(null, true);
         return callback(new Error('Not allowed by CORS'));
       },

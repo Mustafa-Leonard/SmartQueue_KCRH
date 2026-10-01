@@ -1,13 +1,13 @@
 import { Router } from 'express';
 import * as serviceController from './service.controller.js';
 import validate from '../../middleware/validate.js';
-import { protect, restrictTo } from '../../middleware/auth.js';
+import { protect, optionalProtect, restrictTo } from '../../middleware/auth.js';
 
 const router = Router();
 
 // ─── Public / Authenticated read routes ──────────────────────────────────────
 // Note: /branch/:branchId must come before /:id to avoid param conflict
-router.get('/branch/:branchId', serviceController.getBranchServices);
+router.get('/branch/:branchId', optionalProtect, serviceController.getBranchServices);
 
 router.get('/', serviceController.getServices);
 router.get('/:id', serviceController.getService);

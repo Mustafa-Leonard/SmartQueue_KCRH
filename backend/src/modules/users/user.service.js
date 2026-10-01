@@ -40,7 +40,9 @@ export const getAllUsers = async ({
   page = 1,
   limit = 20
 } = {}) => {
-  const skip = (Number(page) - 1) * Number(limit);
+  const pageNumber = Math.max(1, Number(page) || 1);
+  const limitNumber = Math.min(100, Math.max(1, Number(limit) || 20));
+  const skip = (pageNumber - 1) * limitNumber;
 
   const where = {};
 
@@ -60,23 +62,30 @@ export const getAllUsers = async ({
     ];
   }
 
-  const [users, total] = await Promise.all([
+  const [users, total, roleSummary] = await Promise.all([
     prisma.user.findMany({
       where,
       select: userPublicSelect,
       skip,
-      take: Number(limit),
+      take: limitNumber,
       orderBy: { name: 'asc' }
     }),
-    prisma.user.count({ where })
+    prisma.user.count({ where }),
+    prisma.user.groupBy({
+      by: ['role'],
+      _count: { _all: true }
+    })
   ]);
+
+  const roleCounts = Object.fromEntries(roleSummary.map(item => [item.role, item._count._all]));
 
   return {
     users,
     total,
-    page: Number(page),
-    limit: Number(limit),
-    pages: Math.ceil(total / Number(limit))
+    roleCounts,
+    page: pageNumber,
+    limit: limitNumber,
+    pages: Math.ceil(total / limitNumber)
   };
 };
 
@@ -145,12 +154,17 @@ export const createUser = async ({ name, email, phone, password, role = 'CUSTOME
  * Update user profile fields. If password is provided it is re-hashed.
  * @param {string} id   - User ID
  * @param {Object} data - Fields to update
+ * @param {string} [actorId] - ID of the admin performing the action
  */
-export const updateUser = async (id, data) => {
+export const updateUser = async (id, data, actorId) => {
   // Ensure user exists
-  await getUserById(id);
+  const existing = await getUserById(id);
 
   const updateData = { ...data };
+
+  if (updateData.isActive === false) {
+    await assertCanDeactivate(existing, actorId);
+  }
 
   if (updateData.password) {
     const rounds = Number(config.BCRYPT_ROUNDS) || 12;
@@ -169,21 +183,54 @@ export const updateUser = async (id, data) => {
   });
 };
 
+// ─── Deactivation safety guard ───────────────────────────────────────────────
+/**
+ * Prevent accidental lock-outs:
+ *   - an admin cannot deactivate their own account
+ *   - the last remaining active ADMIN cannot be deactivated
+ * @param {Object} target  - user about to be deactivated (needs id, role, isActive)
+ * @param {string} [actorId] - id of the admin performing the action
+ */
+const assertCanDeactivate = async (target, actorId) => {
+  if (actorId && target.id === actorId) {
+    const err = new Error('You cannot deactivate your own account');
+    err.statusCode = 403;
+    throw err;
+  }
+
+  if (target.role === 'ADMIN' && target.isActive) {
+    const activeAdmins = await prisma.user.count({
+      where: { role: 'ADMIN', isActive: true }
+    });
+
+    if (activeAdmins <= 1) {
+      const err = new Error('Cannot deactivate the last active admin account');
+      err.statusCode = 403;
+      throw err;
+    }
+  }
+};
+
 // ─── toggleUserActive ────────────────────────────────────────────────────────
 /**
  * Toggle a user's isActive status (activate / deactivate).
  * @param {string} id - User ID
+ * @param {string} [actorId] - ID of the admin performing the action
  */
-export const toggleUserActive = async (id) => {
+export const toggleUserActive = async (id, actorId) => {
   const user = await prisma.user.findUnique({
     where: { id },
-    select: { id: true, isActive: true, name: true }
+    select: { id: true, isActive: true, name: true, role: true }
   });
 
   if (!user) {
     const err = new Error('User not found');
     err.statusCode = 404;
     throw err;
+  }
+
+  if (user.isActive) {
+    await assertCanDeactivate(user, actorId);
   }
 
   return prisma.user.update({
@@ -198,8 +245,9 @@ export const toggleUserActive = async (id) => {
  * Soft-delete a user by setting isActive to false.
  * @param {string} id - User ID
  */
-export const deleteUser = async (id) => {
-  await getUserById(id);
+export const deleteUser = async (id, actorId) => {
+  const existing = await getUserById(id);
+  await assertCanDeactivate(existing, actorId);
 
   return prisma.user.update({
     where: { id },

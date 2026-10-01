@@ -3,11 +3,18 @@ import { successResponse, errorResponse } from '../../utils/apiResponse.js';
 import asyncHandler from '../../utils/asyncHandler.js';
 import { z } from 'zod';
 
+const strongPasswordSchema = z.string()
+  .min(8, 'Password must be at least 8 characters')
+  .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+  .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+  .regex(/[0-9]/, 'Password must contain at least one number')
+  .regex(/[!@#$%^&*(),.?":{}|<>]/, 'Password must contain at least one special character');
+
 export const registerSchema = z.object({
   name: z.string().trim().min(2, 'Name must be at least 2 characters'),
   email: z.string().trim().email('Provide a valid email address'),
   phone: z.string().trim().regex(/^\+?[1-9]\d{1,14}$/, 'Provide a valid phone number in international format (e.g. +254712345678)'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  password: strongPasswordSchema,
   confirmPassword: z.string()
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
@@ -57,7 +64,8 @@ export const updateProfileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').optional(),
   email: z.string().trim().email('Provide a valid email address').optional(),
   phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, 'Provide a valid phone number').optional(),
-  password: z.string().min(8, 'Password must be at least 8 characters').optional(),
+  password: strongPasswordSchema.optional(),
+  currentPassword: z.string().optional(),
   notificationPrefs: z.string().optional(),
   emergencyContact: z.string().optional(),
   emergencyContactName: z.string().optional(),
@@ -72,6 +80,10 @@ export const updateProfileSchema = z.object({
   gender: z.string().optional(),
   dateOfBirth: z.string().optional(),
   address: z.string().optional()
+}).superRefine((data, context) => {
+  if (data.password && !data.currentPassword) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['currentPassword'], message: 'Current password is required to change your password' });
+  }
 });
 
 export const updateProfile = asyncHandler(async (req, res) => {
@@ -87,7 +99,7 @@ export const forgotPasswordSchema = z.object({
 export const resetPasswordSchema = z.object({
   email: z.string().trim().email('Provide a valid email address'),
   token: z.string().min(1, 'Reset token is required'),
-  newPassword: z.string().min(8, 'Password must be at least 8 characters'),
+  newPassword: strongPasswordSchema,
   confirmPassword: z.string()
 }).refine((data) => data.newPassword === data.confirmPassword, {
   message: "Passwords don't match",

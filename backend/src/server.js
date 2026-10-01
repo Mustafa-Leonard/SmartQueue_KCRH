@@ -12,24 +12,46 @@ app.locals.io = io; // Attach to express local context for accessibility
 
 const startServer = async () => {
   try {
+    const port = Number(config.PORT);
+    if (!Number.isInteger(port) || port < 0 || port > 65535) {
+      throw new Error(`Invalid PORT value: ${config.PORT}`);
+    }
+
     // Verify database connection
     console.info('Connecting to database...');
     await prisma.$connect();
     console.info('Database connection established successfully.');
 
-    // Start HTTP server
-    server.listen(config.PORT, () => {
-      console.info(`===================================================`);
-      console.info(` SmartQueue Backend started successfully!`);
-      console.info(` Port: ${config.PORT}`);
-      console.info(` Environment: ${config.NODE_ENV}`);
-      console.info(` API docs: ${config.FRONTEND_URL}/docs`);
-      console.info(`===================================================`);
+    // Await listener errors so port conflicts produce a useful startup message.
+    await new Promise((resolve, reject) => {
+      const onError = (error) => {
+        server.off('listening', onListening);
+        reject(error);
+      };
+      const onListening = () => {
+        server.off('error', onError);
+        resolve();
+      };
+
+      server.once('error', onError);
+      server.once('listening', onListening);
+      server.listen(port);
     });
+
+    console.info('===================================================');
+    console.info(' SmartQueue Backend started successfully!');
+    console.info(` Port: ${server.address().port}`);
+    console.info(` Environment: ${config.NODE_ENV}`);
+    console.info(` API docs: ${config.FRONTEND_URL}/docs`);
+    console.info('===================================================');
   } catch (error) {
-    console.error('Failed to start server:', error.message);
+    if (error.code === 'EADDRINUSE') {
+      console.error(`Failed to start server: port ${config.PORT} is already in use. Stop the existing backend or configure a different PORT.`);
+    } else {
+      console.error('Failed to start server:', error.message);
+    }
     await prisma.$disconnect();
-    process.exit(1);
+    process.exitCode = 1;
   }
 };
 

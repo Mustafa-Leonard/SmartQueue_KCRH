@@ -4,6 +4,10 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('This seed script creates known demo accounts and must not run in production.');
+  }
+
   console.log('Seeding KCRH database...');
 
   // 1. Create / Update Users with known passwords
@@ -127,7 +131,7 @@ async function main() {
           status: 'OPEN',
           branchId: opdBranch.id,
           staffId: staff.id,
-          services: {
+          serviceRelations: {
             connect: [{ id: servicesMap['General Consultation'].id }, ...(servicesMap['Specialist Clinic'] ? [{ id: servicesMap['Specialist Clinic'].id }] : [])]
           }
         }
@@ -150,7 +154,7 @@ async function main() {
           number: 2,
           status: 'CLOSED',
           branchId: opdBranch.id,
-          services: {
+          serviceRelations: {
             connect: [{ id: servicesMap['General Consultation'].id }]
           }
         }
@@ -167,7 +171,7 @@ async function main() {
           number: 1,
           status: 'CLOSED',
           branchId: pharmacyBranch.id,
-          services: {
+          serviceRelations: {
             connect: [{ id: servicesMap['NHIF Dispensing'].id }, ...(servicesMap['Cash Dispensing'] ? [{ id: servicesMap['Cash Dispensing'].id }] : [])]
           }
         }

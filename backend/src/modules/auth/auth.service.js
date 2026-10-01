@@ -2,12 +2,15 @@ import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import prisma from '../../config/database.js';
 import { generateTokens, verifyRefreshToken } from '../../utils/jwt.js';
-import { sendWelcomeMessage } from '../notifications/notification.service.js';
+import { sendEmail, sendWelcomeMessage } from '../notifications/notification.service.js';
+import config from '../../config/env.js';
 import { createActivityLog } from '../audit/audit.service.js';
 
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCK_DURATION_MINUTES = 30;
 const PASSWORD_MIN_LENGTH = 8;
+
+const authError = (message, status) => Object.assign(new Error(message), { status });
 
 /**
  * Validate password strength
@@ -41,52 +44,53 @@ export const registerUser = async ({ name, email, phone, password, ipAddress }) 
 
   // Validate required fields
   if (!name || !password) {
-    throw new Error('Name and password are required');
+    throw authError('Name and password are required', 400);
   }
 
   // Password strength validation
   const passwordErrors = validatePasswordStrength(password);
   if (passwordErrors.length > 0) {
-    throw new Error(passwordErrors.join('; '));
+    throw authError(passwordErrors.join('; '), 400);
   }
 
-  // Check duplicate email
-  const existingEmail = await prisma.user.findUnique({ where: { email: normalizedEmail } });
-  if (existingEmail) {
-    throw new Error('Email is already registered');
+  // Check both unique fields in one query; database constraints handle concurrent registrations.
+  const existingUser = await prisma.user.findFirst({
+    where: { OR: [{ email: normalizedEmail }, { phone: normalizedPhone }] },
+    select: { email: true, phone: true }
+  });
+  if (existingUser?.email === normalizedEmail) {
+    throw authError('Email is already registered', 409);
   }
-
-  // Check duplicate phone
-  const existingPhone = await prisma.user.findUnique({ where: { phone: normalizedPhone } });
-  if (existingPhone) {
-    throw new Error('Phone number is already registered');
+  if (existingUser?.phone === normalizedPhone) {
+    throw authError('Phone number is already registered', 409);
   }
 
   const hashedPassword = await bcrypt.hash(password, 12);
+  const { user, tokens } = await prisma.$transaction(async (transaction) => {
+    const createdUser = await transaction.user.create({
+      data: {
+        name: name.trim(),
+        email: normalizedEmail,
+        phone: normalizedPhone,
+        password: hashedPassword,
+        role: 'CUSTOMER',
+        notificationPrefs: JSON.stringify({ sms: true, email: false, whatsapp: false, inApp: true }),
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        isActive: true,
+        createdAt: true
+      }
+    });
 
-  const user = await prisma.user.create({
-    data: {
-      name: name ? name.trim() : name,
-      email: normalizedEmail,
-      phone: normalizedPhone,
-      password: hashedPassword,
-      role: 'CUSTOMER',
-      notificationPrefs: JSON.stringify({ sms: true, email: false, whatsapp: false, inApp: true }),
-    },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      phone: true,
-      role: true,
-      isActive: true,
-      createdAt: true
-    }
+    const createdTokens = generateTokens({ id: createdUser.id, role: createdUser.role });
+    await createSession(createdUser.id, createdTokens.refreshToken, ipAddress, transaction);
+    return { user: createdUser, tokens: createdTokens };
   });
-
-  // Create session
-  const tokens = generateTokens({ id: user.id, role: user.role });
-  await createSession(user.id, tokens.refreshToken, ipAddress);
 
   // Log activity
   await createActivityLog({
@@ -111,17 +115,17 @@ export const loginUser = async ({ email, password, ipAddress }) => {
   const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
 
   if (!user) {
-    throw new Error('Invalid email or password');
+    throw authError('Invalid email or password', 401);
   }
 
-  // Check if account is locked
-  if (user.isLocked && user.lockedUntil && new Date() < user.lockedUntil) {
+  // Admins use the IP-based login limiter instead of an account lock that can disable operations.
+  if (user.role !== 'ADMIN' && user.isLocked && user.lockedUntil && new Date() < user.lockedUntil) {
     const remainingMinutes = Math.ceil((user.lockedUntil - new Date()) / 60000);
-    throw new Error(`Account is locked. Try again in ${remainingMinutes} minute(s) or contact support.`);
+    throw authError(`Account is locked. Try again in ${remainingMinutes} minute(s) or contact support.`, 423);
   }
 
   // Reset lock if lock period expired
-  if (user.isLocked && user.lockedUntil && new Date() >= user.lockedUntil) {
+  if (user.role !== 'ADMIN' && user.isLocked && user.lockedUntil && new Date() >= user.lockedUntil) {
     await prisma.user.update({
       where: { id: user.id },
       data: { isLocked: false, lockedUntil: null, failedLoginAttempts: 0 }
@@ -129,25 +133,26 @@ export const loginUser = async ({ email, password, ipAddress }) => {
   }
 
   if (!user.isActive) {
-    throw new Error('Your account is deactivated. Please contact support.');
+    throw authError('Your account is deactivated. Please contact support.', 403);
   }
 
   const isPasswordCorrect = await bcrypt.compare(password, user.password);
 
   if (!isPasswordCorrect) {
-    // Increment failed attempts
     const newAttempts = user.failedLoginAttempts + 1;
     const updateData = { failedLoginAttempts: newAttempts };
 
-    // Lock account if max attempts reached
-    if (newAttempts >= MAX_LOGIN_ATTEMPTS) {
+    if (user.role !== 'ADMIN' && newAttempts >= MAX_LOGIN_ATTEMPTS) {
       updateData.isLocked = true;
       updateData.lockedUntil = new Date(Date.now() + LOCK_DURATION_MINUTES * 60 * 1000);
     }
 
     await prisma.user.update({ where: { id: user.id }, data: updateData });
 
-    throw new Error(`Invalid email or password. ${MAX_LOGIN_ATTEMPTS - newAttempts} attempt(s) remaining.`);
+    if (user.role === 'ADMIN') {
+      throw authError('Invalid email or password', 401);
+    }
+    throw authError(`Invalid email or password. ${Math.max(0, MAX_LOGIN_ATTEMPTS - newAttempts)} attempt(s) remaining.`, 401);
   }
 
   // Successful login - reset failed attempts and update last login
@@ -210,7 +215,7 @@ export const refreshTokens = async ({ refreshToken, ipAddress }) => {
   try {
     decoded = verifyRefreshToken(refreshToken);
   } catch (err) {
-    throw new Error('Invalid or expired refresh token');
+    throw authError('Invalid or expired refresh token', 401);
   }
 
   // Check if session exists and is valid
@@ -219,7 +224,7 @@ export const refreshTokens = async ({ refreshToken, ipAddress }) => {
   });
 
   if (!session || session.isRevoked) {
-    throw new Error('Session has been revoked. Please log in again.');
+    throw authError('Session has been revoked. Please log in again.', 401);
   }
 
   if (new Date() > session.expiresAt) {
@@ -227,7 +232,7 @@ export const refreshTokens = async ({ refreshToken, ipAddress }) => {
       where: { id: session.id },
       data: { isRevoked: true }
     });
-    throw new Error('Session expired. Please log in again.');
+    throw authError('Session expired. Please log in again.', 401);
   }
 
   // Revoke old session (rotation)
@@ -294,13 +299,13 @@ export const initiatePasswordReset = async (email) => {
     }
   });
 
-  // In production, send email with reset link
-  const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${resetToken}&email=${normalizedEmail}`;
-  
-  console.info(`Password reset initiated for ${normalizedEmail}: ${resetUrl}`);
-  
-  // TODO: Send email with reset link via email service
-  // await sendPasswordResetEmail(user.email, resetUrl);
+  const resetUrl = new URL('/reset-password', config.FRONTEND_URL);
+  resetUrl.searchParams.set('token', resetToken);
+  resetUrl.searchParams.set('email', normalizedEmail);
+  const emailHtml = '<p>A password reset was requested for your account.</p>' +
+    `<p><a href="${resetUrl.toString()}">Set a new password</a></p>` +
+    '<p>This link expires in one hour. If you did not request a reset, you can ignore this email.</p>';
+  await sendEmail(user.email, 'Reset your KCRH SmartQueue password', emailHtml, user.id, { sensitive: true });
 
   return { message: 'If that email is registered, a reset link has been sent.' };
 };
@@ -314,12 +319,12 @@ export const completePasswordReset = async ({ email, token, newPassword }) => {
   // Password strength validation
   const passwordErrors = validatePasswordStrength(newPassword);
   if (passwordErrors.length > 0) {
-    throw new Error(passwordErrors.join('; '));
+    throw authError(passwordErrors.join('; '), 400);
   }
 
   const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
   if (!user) {
-    throw new Error('Invalid or expired reset token');
+    throw authError('Invalid or expired reset token', 400);
   }
 
   // Hash the provided token for lookup
@@ -335,7 +340,7 @@ export const completePasswordReset = async ({ email, token, newPassword }) => {
   });
 
   if (!resetRecord) {
-    throw new Error('Invalid or expired reset token');
+    throw authError('Invalid or expired reset token', 400);
   }
 
   // Hash new password and update user
@@ -369,11 +374,11 @@ export const completePasswordReset = async ({ email, token, newPassword }) => {
 /**
  * Helper: Create a user session
  */
-async function createSession(userId, refreshToken, ipAddress) {
+async function createSession(userId, refreshToken, ipAddress, database = prisma) {
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + 7); // 7 days
 
-  await prisma.userSession.create({
+  await database.userSession.create({
     data: {
       userId,
       refreshToken,
@@ -395,7 +400,7 @@ export const updateUserProfile = async (userId, data) => {
     // Check for duplicate email
     const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
     if (existing && existing.id !== userId) {
-      throw new Error('Email is already in use');
+      throw authError('Email is already in use', 409);
     }
     updateData.email = normalizedEmail;
   }
@@ -404,14 +409,17 @@ export const updateUserProfile = async (userId, data) => {
     // Check for duplicate phone
     const existing = await prisma.user.findUnique({ where: { phone: normalizedPhone } });
     if (existing && existing.id !== userId) {
-      throw new Error('Phone number is already in use');
+      throw authError('Phone number is already in use', 409);
     }
     updateData.phone = normalizedPhone;
   }
   if (data.password) {
-    const passwordErrors = validatePasswordStrength(data.password);
-    if (passwordErrors.length > 0) {
-      throw new Error(passwordErrors.join('; '));
+    const currentUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { password: true }
+    });
+    if (!currentUser || !(await bcrypt.compare(data.currentPassword || '', currentUser.password))) {
+      throw authError('Current password is incorrect', 401);
     }
     updateData.password = await bcrypt.hash(data.password, 12);
   }
@@ -431,7 +439,7 @@ export const updateUserProfile = async (userId, data) => {
   if (data.address !== undefined) updateData.address = data.address;
 
   if (Object.keys(updateData).length === 0) {
-    throw new Error('No fields to update');
+    throw authError('No fields to update', 400);
   }
 
   const user = await prisma.user.update({
@@ -504,7 +512,7 @@ export const getUserProfile = async (userId) => {
   });
 
   if (!user) {
-    throw new Error('User not found');
+    throw authError('User not found', 404);
   }
 
   return user;
